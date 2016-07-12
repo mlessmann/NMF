@@ -69,7 +69,9 @@ namespace NMF.Models.Evolution
         /// <returns></returns>
         public ModelChangeCollection GetModelChanges()
         {
-            return new ModelChangeCollection(ParseChangeList());
+            var changes = new ModelChangeCollection(ParseChangeList());
+            changes.Minimize();
+            return changes;
         }
 
         private List<IModelChange> ParseChangeList()

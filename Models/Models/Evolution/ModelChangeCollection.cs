@@ -1,4 +1,5 @@
-﻿using NMF.Models.Repository;
+﻿using NMF.Models.Evolution.Minimizing;
+using NMF.Models.Repository;
 using NMF.Serialization.Xmi;
 using System;
 using System.Collections;
@@ -35,6 +36,17 @@ namespace NMF.Models.Evolution
         {
             foreach (var change in Changes)
                 change.Apply(repository);
+        }
+
+        public void Minimize()
+        {
+            var strategies = new[] { new MultiplePropertyChanges() };
+            var localChanges = Changes;
+
+            foreach (var strategy in strategies)
+                localChanges = strategy.Execute(localChanges);
+
+            Changes = localChanges;
         }
 
         public IEnumerable<IModelChange> TraverseFlat()
