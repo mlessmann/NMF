@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.Linq.Expressions;
 
 namespace NMF.Expressions
@@ -10,142 +12,57 @@ namespace NMF.Expressions
     /// <typeparam name="T"></typeparam>
     public abstract class NotifyExpression<T> : NotifyExpressionBase, INotifyExpression<T>
     {
+        public int TotalVisits { get; set; }
+
+        public int RemainingVisits { get; set; }
+
         /// <summary>
         /// Creates a new incremental expression
         /// </summary>
-        protected NotifyExpression() { }
+        protected NotifyExpression()
+        {
+            successors.CollectionChanged += (obj, e) =>
+            {
+                if (successors.Count == 0)
+                    Detach();
+                else if (e.Action == NotifyCollectionChangedAction.Add && successors.Count == 1)
+                    Attach();
+            };
+        }
 
         /// <summary>
         /// Creates a new incremental expression with the given initial value
         /// </summary>
         /// <param name="value">The initial value</param>
-        protected NotifyExpression(T value)
+        protected NotifyExpression(T value) : this()
         {
             this.value = value;
         }
 
+        private readonly ShortList<INotifiable> successors = new ShortList<INotifiable>();
         private T value;
+
+        public event EventHandler<ValueChangedEventArgs> ValueChanged;
 
         /// <summary>
         /// Gets the current value of this expression
         /// </summary>
-        public T Value
-        {
-            get
-            {
-                return value;
-            }
-        }
+        public T Value { get { return value; } }
 
         /// <summary>
         /// Gets the current value as object
         /// </summary>
-        public object ValueObject
-        {
-            get
-            {
-                return Value;
-            }
-        }
+        public object ValueObject { get { return Value; } }
 
         /// <summary>
         /// Gets the type of this incremental expression
         /// </summary>
-        public sealed override Type Type
-        {
-            get
-            {
-                return typeof(T);
-            }
-        }
-
-        /// <summary>
-        /// Gets fired when the current value of this expression changes
-        /// </summary>
-        public event EventHandler<ValueChangedEventArgs> ValueChanged;
-
-        /// <summary>
-        /// Refreshes the current value
-        /// </summary>
-        public virtual void Refresh()
-        {
-            var newVal = GetValue();
-            if (!EqualityComparer<T>.Default.Equals(value, newVal))
-            {
-                var oldVal = value;
-                value = newVal;
-                OnValueChanged(oldVal, newVal);
-            }
-        }
+        public sealed override Type Type { get { return typeof(T); } }
 
         /// <summary>
         /// Determines whether this expression can be reduced
         /// </summary>
-        public override bool CanReduce
-        {
-            get
-            {
-                return CanBeConstant;
-            }
-        }
-
-        /// <summary>
-        /// Simplifies the current expression
-        /// </summary>
-        /// <returns>A simpler expression representing the same incremental value (e.g. a constant if this expression can be constant), otherwise itself</returns>
-        public new virtual INotifyExpression<T> Reduce()
-        {
-            Attach();
-            if (CanBeConstant)
-            {
-                return new ObservableConstant<T>(Value);
-            }
-            else
-            {
-                return this;
-            }
-        }
-
-        /// <summary>
-        /// Simplifies the current expression
-        /// </summary>
-        /// <returns>A simpler expression repüresenting the same incremental value (e.g. a constant if this expression can be constant), otherwise itself</returns>
-        protected override Expression BaseReduce()
-        {
-            Attach();
-            if (CanBeConstant)
-            {
-                return new ObservableConstant<T>(Value);
-            }
-            else
-            {
-                return this;
-            }            
-        }
-
-        /// <summary>
-        /// Gets called when the value of the current expression changes
-        /// </summary>
-        /// <param name="oldVal">The old value</param>
-        /// <param name="newVal">The new value</param>
-        protected void OnValueChanged(T oldVal, T newVal)
-        {
-            OnValueChanged(new ValueChangedEventArgs(oldVal, newVal));
-        }
-
-
-        /// <summary>
-        /// Gets called when the value of the current expression changes
-        /// </summary>
-        /// <param name="e">The event data</param>
-        protected virtual void OnValueChanged(ValueChangedEventArgs e)
-        {
-            var handler = ValueChanged;
-            if (handler != null)
-            {
-                handler.Invoke(this, e);
-            }
-        }
+        public override bool CanReduce { get { return CanBeConstant; } }
 
         /// <summary>
         /// Returns whether the current expression can be constant
@@ -159,53 +76,22 @@ namespace NMF.Expressions
         protected abstract T GetValue();
 
         /// <summary>
-        /// Returns whether the expression is currently olistening to changes
-        /// </summary>
-        public bool IsAttached { get; private set; }
-
-        /// <summary>
-        /// Detaches a client from the incremental expression
-        /// </summary>
-        public void Detach()
-        {
-            if (IsAttached)
-            {
-                IsAttached = false;
-                DetachCore();
-            }
-        }
-
-        /// <summary>
-        /// Attaches a client to the incremental expression
-        /// </summary>
-        public void Attach()
-        {
-            if (!IsAttached)
-            {
-                AttachCore();
-                IsAttached = true;
-                Refresh();
-            }
-        }
-
-        /// <summary>
-        /// Detach this incremental expression from listening to changes
-        /// </summary>
-        protected abstract void DetachCore();
-
-        /// <summary>
-        /// Attach this incremental client to listening to changes
-        /// </summary>
-        protected abstract void AttachCore();
-
-        /// <summary>
         /// Returns whether this expression is parameter free
         /// </summary>
-        public abstract bool IsParameterFree
+        public abstract bool IsParameterFree { get; }
+
+        /// <summary>
+        /// Returns whether this expression is a constant value
+        /// </summary>
+        public virtual bool IsConstant
         {
-            get;
+            get { return false; }
         }
 
+        public IList<INotifiable> Successors { get { return successors; } }
+
+        public abstract IEnumerable<INotifiable> Dependencies { get; }
+        
         /// <summary>
         /// Applies the given set of parameters to the expression
         /// </summary>
@@ -214,12 +100,83 @@ namespace NMF.Expressions
         /// <remarks>In case that the current expression is parameter free, it simply returns itself</remarks>
         public abstract INotifyExpression<T> ApplyParameters(IDictionary<string, object> parameters);
 
-        /// <summary>
-        /// Returns whether this expression is a constant value
-        /// </summary>
-        public virtual bool IsConstant
+        private void Attach()
         {
-            get { return false; }
+            OnAttach();
+            foreach (var dep in Dependencies)
+                dep.Successors.Add(this);
+            value = GetValue();
+        }
+
+        private void Detach()
+        {
+            OnDetach();
+            foreach (var dep in Dependencies)
+                dep.Successors.Remove(this);
+        }
+
+        /// <summary>
+        /// Occurs when this node gets (re)attached to another node for the first time
+        /// </summary>
+        protected virtual void OnAttach() { }
+
+        /// <summary>
+        /// Occurs when the last successor of this node gets removed
+        /// </summary>
+        protected virtual void OnDetach() { }
+
+        /// <summary>
+        /// Simplifies the current expression
+        /// </summary>
+        /// <returns>A simpler expression representing the same incremental value (e.g. a constant if this expression can be constant), otherwise itself</returns>
+        public new virtual INotifyExpression<T> Reduce()
+        {
+            if (CanBeConstant)
+            {
+                return new ObservableConstant<T>(Value);
+            }
+            else
+            {
+                return this;
+            }
+        }
+
+        /// <summary>
+        /// Simplifies the current expression
+        /// </summary>
+        /// <returns>A simpler expression representing the same incremental value (e.g. a constant if this expression can be constant), otherwise itself</returns>
+        protected override Expression BaseReduce()
+        {
+            if (CanBeConstant)
+            {
+                return new ObservableConstant<T>(Value);
+            }
+            else
+            {
+                return this;
+            }
+        }
+
+        protected virtual void OnValueChanged(T oldValue, T newValue)
+        {
+            if (ValueChanged != null)
+                ValueChanged(this, new ValueChangedEventArgs(oldValue, newValue));
+        }
+
+        /// <summary>
+        /// Refreshes the current value
+        /// </summary>
+        public virtual bool Notify(IEnumerable<INotifiable> sources)
+        {
+            var newVal = GetValue();
+            if (!EqualityComparer<T>.Default.Equals(value, newVal))
+            {
+                var oldVal = value;
+                value = newVal;
+                OnValueChanged(oldVal, newVal);
+                return true;
+            }
+            return false;
         }
     }
 }

@@ -10,20 +10,18 @@ namespace NMF.Expressions
     {
         public ObservableLambdaExpression(Expression<T> value)
             : base(value) { }
+        
+        public override bool IsParameterFree
+        {
+            get { return true; }
+        }
 
         protected override Expression<T> GetValue()
         {
             return Value;
         }
 
-        protected override void DetachCore() { }
-
-        protected override void AttachCore() { }
-
-        public override bool IsParameterFree
-        {
-            get { return true; }
-        }
+        public override IEnumerable<INotifiable> Dependencies { get { return Enumerable.Empty<INotifiable>(); } }
 
         public override INotifyExpression<Expression<T>> ApplyParameters(IDictionary<string, object> parameters)
         {
