@@ -24,15 +24,6 @@ namespace NMF.Expressions
             }
         }
 
-        public override IEnumerable<INotifiable> Dependencies
-        {
-            get
-            {
-                if (Proxy != null)
-                    yield return Proxy;
-            }
-        }
-
         protected override TResult GetValue()
         {
             return Proxy.Value;
@@ -75,7 +66,7 @@ namespace NMF.Expressions
 
         protected override void OnAttach()
         {
-            Proxy = CreateProxy();
+            RenewProxy();
         }
     }
 }
