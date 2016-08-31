@@ -14,6 +14,7 @@ using NMF.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Web;
 using System.Collections;
+using NMF.Models.Collections;
 
 namespace NMF.Models
 {
@@ -286,6 +287,17 @@ namespace NMF.Models
             get
             {
                 return Extensions;
+            }
+        }
+
+
+        internal DescendantsCollection Descendants
+        {
+            get
+            {
+                if (descendants == null)
+                    descendants = new DescendantsCollection(this);
+                return descendants;
             }
         }
 
