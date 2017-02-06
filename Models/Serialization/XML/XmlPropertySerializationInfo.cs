@@ -160,7 +160,7 @@ namespace NMF.Serialization
             try
             {
                 getter = (Func<TComponent, TProperty>)property.GetMethod.CreateDelegate(typeof(Func<TComponent, TProperty>));
-                if (property.CanWrite )
+                if (property.CanWrite)
                 {
                     setter = (Action<TComponent, TProperty>)property.SetMethod.CreateDelegate(typeof(Action<TComponent, TProperty>));
                 }

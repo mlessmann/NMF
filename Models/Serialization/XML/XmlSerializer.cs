@@ -291,6 +291,8 @@ namespace NMF.Serialization
             }
             foreach (var pi in typeInfo.DeclaredProperties)
             {
+                if (pi.GetMethod.IsStatic)
+                    continue;
                 var indexParams = pi.GetIndexParameters();
                 if (indexParams == null || indexParams.Length == 0)
                 {
