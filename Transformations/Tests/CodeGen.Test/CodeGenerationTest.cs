@@ -13,7 +13,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace NMF.CodeGenerationTests
+namespace NMF.CodeGen.Test
 {
     public static class CodeGenerationTest
     {

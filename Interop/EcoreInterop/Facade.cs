@@ -25,11 +25,11 @@ namespace NMF.Interop.Ecore
         static EcoreInterop()
         {
             var assembly = typeof(EcoreInterop).GetTypeInfo().Assembly;
-            using (var ecoreModel = assembly.GetManifestResourceStream("EcoreInterop.Ecore.ecore"))
+            using (var ecoreModel = assembly.GetManifestResourceStream("Nmf.Interop.Ecore.Ecore.ecore"))
             {
                 repository.Serializer.Deserialize(ecoreModel, new Uri("http://www.eclipse.org/emf/2002/Ecore", UriKind.Absolute), repository, true);
             }
-            using (var layoutModel = assembly.GetManifestResourceStream("EcoreInterop.layout.ecore"))
+            using (var layoutModel = assembly.GetManifestResourceStream("NMF.Interop.Ecore.layout.ecore"))
             {
                 repository.Serializer.Deserialize(layoutModel, new Uri("platform:/plugin/org.emftext.commons.layout/metamodel/layout.ecore", UriKind.Absolute), repository, true);
             }

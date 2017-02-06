@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace NMF.Analyses
+namespace NMF.Analysis
 {
     public abstract class Analysis
     {

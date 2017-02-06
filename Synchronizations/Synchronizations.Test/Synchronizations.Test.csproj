@@ -2,6 +2,7 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp1.0</TargetFramework>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <RootNamespace>NMF.Synchronizations.Test</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
     <None Remove="A2B\TypeA.nmf" />

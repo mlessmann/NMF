@@ -2,6 +2,7 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp1.0</TargetFramework>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <RootNamespace>NMF.Expressions.Test</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="..\..\..\CommonAssemblyInfo.cs" Link="CommonAssemblyInfo.cs" />
