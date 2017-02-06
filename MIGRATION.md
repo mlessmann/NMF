@@ -46,7 +46,7 @@ The following projects (and their respective test projects) compile and pass all
 
 Increator is missing the GAF nuget package, which is only available for .NET Framework, not for .NET Standard.
 
-CodeGen is missing the CodeDom API, which will be included in .NET Standard 2.0 (as seen by milestone tag [here](https://github.com/dotnet/corefx/issues?utf8=%E2%9C%93&q=label%3Aarea-System.CodeDom%20)). The other projects depend on GodeGen and therefore don't compile either.
+CodeGen is missing the CodeDom API, which will be included in .NET Standard 2.0 (as seen by milestone tag [here](https://github.com/dotnet/corefx/issues?utf8=%E2%9C%93&q=label%3Aarea-System.CodeDom%20)). The other projects depend on CodeDom and therefore don't compile either.
 
 ### What fails their tests
 
@@ -61,7 +61,7 @@ Currently, 98 unit tests are failing in total. All of them are due to missing au
 ### Minor missing features and temporary workarounds
 
 * The XML and XMI Serializers no longer call the methods of `ISupportInitialize` during deserialization. The interface was removed in .NET Core.
-* During unit test execution the working directoy is set wrongly. Instead of the directory of the testassemly, it defaultstothe Visual Studio installation path. [This is a known bug](https://github.com/Microsoft/vstest/issues/311) which has already been fixed, but not deployed. To fix this issue temporarily, there are 2 TODOs in the ModelRepository class, which set the working directory manually.
+* During unit test execution the working directoy is set wrongly. Instead of the directory of the testassemly, it defaults to sthe Visual Studio installation path. [This is a known bug](https://github.com/Microsoft/vstest/issues/311) which has already been fixed, but not deployed. To fix this issue temporarily, there are 2 TODOs in the ModelRepository class, which set the working directory manually.
 * The Benchmarks library targets .NET Standard 1.5 instead of 1.4, because it depends on the CommandLineParser nuget package, which targets 1.5.
 
 ## TODO
@@ -70,3 +70,4 @@ Currently, 98 unit tests are failing in total. All of them are due to missing au
 * Wait for CodeDom to be released for .NET Standard (probably in 2.0), then port the depending libraries to it.
 * Find a replacement for the Generic Algorithm Framework used by Incerator.
 * Update the nuget package generation.
+* Update the CI.
