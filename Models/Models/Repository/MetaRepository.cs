@@ -6,6 +6,7 @@ using System.Reflection;
 using NMF.Models.Repository.Serialization;
 using NMF.Models.Meta;
 using System.Runtime.InteropServices;
+using Microsoft.Extensions.DependencyModel;
 
 namespace NMF.Models.Repository
 {
@@ -14,7 +15,7 @@ namespace NMF.Models.Repository
         private static MetaRepository instance = new MetaRepository();
         private ModelCollection entries;
         private ModelSerializer serializer = new ModelSerializer();
-        private HashSet<Assembly> modelAssemblies = new HashSet<Assembly>();
+        private HashSet<string> touchedAssemblies = new HashSet<string>();
 
         event EventHandler<BubbledChangeEventArgs> IModelRepository.BubbledChange
         {
@@ -43,15 +44,8 @@ namespace NMF.Models.Repository
             entries = new ModelCollection(this);
             serializer.KnownTypes.Add(typeof(INamespace));
             serializer.KnownTypes.Add(typeof(Model));
-
-            /*var domain = AppDomain.CurrentDomain;
-            domain.AssemblyLoad += domain_AssemblyLoad;
-            var assemblies = domain.GetAssemblies();
-            for (int i = 0; i < assemblies.Length; i++)
-            {
-                RegisterAssembly(assemblies[i]);
-            }*/
-            RegisterAssembly(GetType().GetTypeInfo().Assembly);
+            
+            FindNewAssemblies();
         }
 
         public IType ResolveType(string uriString)
@@ -71,19 +65,35 @@ namespace NMF.Models.Repository
             return null;
         }
 
-        private void RegisterAssembly(Assembly assembly)
-        {   
-            var attributes = assembly.GetCustomAttributes<ModelMetadataAttribute>();
-            if (attributes != null && attributes.Any() && modelAssemblies.Add(assembly))
+        private void FindNewAssemblies()
+        {
+            var loadedAssemblies = DependencyContext.Default.GetDefaultAssemblyNames();
+
+            foreach (var assemblyName in loadedAssemblies)
             {
-                /*var references = assembly.GetReferencedAssemblies();
-                if (references != null)
-                {
-                    for (int i = 0; i < references.Length; i++)
-                    {
-                        RegisterAssembly(Assembly.Load(references[i]));
-                    }
-                }*/
+                RegisterAssembly(assemblyName);
+            }
+        }
+
+        private void RegisterAssembly(AssemblyName assemblyName)
+        {
+            if (assemblyName.Name.StartsWith("System.") || assemblyName.Name.StartsWith("Microsoft."))
+                return;
+
+            //AssemblyNames retrieved by DependencyContext only contain the Name,
+            //whereas those retrieved by GetReferencesAssemblies() contain all info.
+            //Therefore we can only compare on the Name
+            if (!touchedAssemblies.Add(assemblyName.Name))
+                return;
+
+            var assembly = Assembly.Load(assemblyName);
+
+            foreach (var dependency in assembly.GetReferencedAssemblies())
+                RegisterAssembly(dependency);
+
+            var attributes = assembly.GetCustomAttributes<ModelMetadataAttribute>();
+            if (attributes != null && attributes.Any())
+            {
                 var saveMapping = new List<KeyValuePair<string, System.Type>>();
                 foreach (var t in assembly.DefinedTypes)
                 {
@@ -101,18 +111,8 @@ namespace NMF.Models.Repository
                     Uri modelUri;
                     if (metadata != null && names.Contains(metadata.ResourceName) && Uri.TryCreate(metadata.ModelUri, UriKind.Absolute, out modelUri))
                     {
-#if DEBUG
-                        serializer.Deserialize(assembly.GetManifestResourceStream(metadata.ResourceName), modelUri, this, true);
-#else
-                        try
-                        {
-                            serializer.Deserialize(assembly.GetManifestResourceStream(metadata.ResourceName), modelUri, this, true);
-                        }
-                        catch (Exception ex)
-                        {
-                            Console.Error.WriteLine(ex.Message);
-                        }
-#endif
+                        using (var stream = assembly.GetManifestResourceStream(metadata.ResourceName))
+                            serializer.Deserialize(stream, modelUri, this, true);
                     }
                 }
                 for (int i = 0; i < saveMapping.Count; i++)
@@ -130,16 +130,11 @@ namespace NMF.Models.Repository
                 }
             }
         }
-
-        /*void domain_AssemblyLoad(object sender, AssemblyLoadEventArgs args)
-        {
-            RegisterAssembly(args.LoadedAssembly);
-        }*/
-
+        
         public IModelElement Resolve(Uri uri)
         {
-            Model model;
-            if (entries.TryGetValue(uri, out model))
+            FindNewAssemblies();
+            if (entries.TryGetValue(uri, out Model model))
             {
                 return model.Resolve(uri.Fragment);
             }
