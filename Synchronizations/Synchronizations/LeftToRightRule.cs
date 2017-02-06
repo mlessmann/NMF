@@ -21,7 +21,7 @@ namespace NMF.Synchronizations
         {
             this.rule = rule;
             var createRightOutput = rule.GetType().GetMethod("CreateRightOutput", BindingFlags.Instance | BindingFlags.NonPublic);
-            this.needDependencies = createRightOutput.ReflectedType != typeof(SynchronizationRule<TLeft, TRight>);
+            this.needDependencies = createRightOutput.DeclaringType != typeof(SynchronizationRule<TLeft, TRight>);
         }
 
         public override Computation CreateComputation(object[] input, IComputationContext context)

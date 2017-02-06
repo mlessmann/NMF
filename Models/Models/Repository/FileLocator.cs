@@ -22,7 +22,7 @@ namespace NMF.Models.Repository
             if (uri == null) throw new ArgumentNullException("uri");
             if (uri.IsAbsoluteUri)
             {
-                return new Uri(uri.GetLeftPart(UriPartial.Query), UriKind.Absolute);
+                return new Uri(uri.GetComponents(UriComponents.Scheme | UriComponents.StrongAuthority | UriComponents.PathAndQuery, UriFormat.Unescaped), UriKind.Absolute);
             }
             else
             {

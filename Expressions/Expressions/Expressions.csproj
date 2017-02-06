@@ -1,225 +1,106 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{AFCA9D1D-26A6-482A-A5AB-0827AD0FD677}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>NMF.Expressions</RootNamespace>
-    <AssemblyName>NMF.Expressions</AssemblyName>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <SccProjectName>SAK</SccProjectName>
-    <SccLocalPath>SAK</SccLocalPath>
-    <SccAuxPath>SAK</SccAuxPath>
-    <SccProvider>SAK</SccProvider>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>TRACE;DEBUG;DYNAMICEXPRESSIONS</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <RunCodeAnalysis>false</RunCodeAnalysis>
-    <CodeAnalysisRuleSet>codeanalysis.ruleset</CodeAnalysisRuleSet>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE;CODE_ANALYSIS;DYNAMICEXPRESSIONS</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <RunCodeAnalysis>true</RunCodeAnalysis>
-    <CodeAnalysisRuleSet>codeanalysis.ruleset</CodeAnalysisRuleSet>
-  </PropertyGroup>
-  <PropertyGroup>
-    <SignAssembly>false</SignAssembly>
+    <TargetFramework>netstandard1.4</TargetFramework>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="Microsoft.CSharp" />
+    <Compile Include="..\..\CommonAssemblyInfo.cs" Link="CommonAssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\..\CommonAssemblyInfo.cs">
-      <Link>CommonAssemblyInfo.cs</Link>
-    </Compile>
-    <Compile Include="ApplyParametersVisitor.cs" />
-    <Compile Include="Arithmetics\ObservableBitwiseAnd.cs" />
-    <Compile Include="Arithmetics\ObservableBitwiseOr.cs" />
-    <Compile Include="Arithmetics\ObservableBitwiseXor.cs" />
-    <Compile Include="Arithmetics\ObservableComparison.cs" />
-    <Compile Include="Arithmetics\ObservableDivide.cs" />
-    <Compile Include="Arithmetics\ObservableEquals.cs" />
-    <Compile Include="Arithmetics\ObservableShift.cs" />
-    <Compile Include="Arithmetics\ObservableLogicOperators.cs" />
-    <Compile Include="Arithmetics\ObservableModulo.cs" />
-    <Compile Include="Arithmetics\ObservableMultiply.cs" />
-    <Compile Include="Arithmetics\ObservableMinus.cs" />
-    <Compile Include="Arithmetics\ObservableOnesComplement.cs" />
-    <Compile Include="Arithmetics\ObservablePlus.cs" />
-    <Compile Include="Arithmetics\ObservableUnaryMinus.cs" />
-    <Compile Include="ConstantAttribute.cs" />
-    <Compile Include="ExpressionHelper.cs" />
-    <Compile Include="ExpressionRewriter\ExpressionCompileRewriter.cs" />
-    <Compile Include="ExpressionRewriter\ExpressionCompileRewriterAttribute.cs" />
-    <Compile Include="ExpressionRewriter\SetExpressionRewriterAttribute.cs" />
-    <Compile Include="ExpressionRewriter\SetExpressionRewriter.cs" />
-    <Compile Include="ExpressionVisitorBase.cs" />
-    <Compile Include="ObservableDeferredProxyElement.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>ObservableDeferredProxyElement.tt</DependentUpon>
-    </Compile>
-    <Compile Include="ObservableSimpleMethodProxyCall.cs">
-      <DependentUpon>ObservableSimpleMethodProxyCall.tt</DependentUpon>
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-    </Compile>
-    <Compile Include="Public\ParameterDataflowAttribute.cs" />
-    <Compile Include="Public\ConstantValue.cs" />
-    <Compile Include="Public\ImmutableMethodAttribute.cs" />
-    <Compile Include="Public\INotifyExpression.cs" />
-    <Compile Include="Public\INotifyReversableExpression.cs" />
-    <Compile Include="Public\InstructionLevelNotifySystem.cs" />
-    <Compile Include="Public\NotifyExpressionBase.cs" />
-    <Compile Include="Public\NotifySystem.cs" />
-    <Compile Include="Public\Observable.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Observable.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Public\ReversableFunctionTypes.cs">
-      <DependentUpon>ReversableFunctionTypes.tt</DependentUpon>
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-    </Compile>
-    <Compile Include="Public\FunctionTypes.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>FunctionTypes.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Public\FunctionTypes.Manual.cs" />
-    <Compile Include="Public\INotifySystem.cs" />
-    <Compile Include="Public\INotifyValue.cs" />
-    <Compile Include="ExpressionRewriter\ProxyMethodAttribute.cs" />
-    <Compile Include="Public\ReversableExtensions.cs" />
-    <Compile Include="GlobalSuppressions.cs" />
-    <Compile Include="Public\Observable.Manual.cs" />
-    <Compile Include="ObservableArrayIndex.cs" />
-    <Compile Include="ObservableArrayInitializationExpression.cs" />
-    <Compile Include="ObservableExpressionBinder.cs" />
-    <Compile Include="ObservableBinaryExpression.cs" />
-    <Compile Include="ObservableConditionalExpression.cs" />
-    <Compile Include="ObservableConstant.cs" />
-    <Compile Include="Public\NotifyExpression.cs" />
-    <Compile Include="ObservableExpressionBinder.Reflection.cs" />
-    <Compile Include="ObservableLambdaExpression.cs" />
-    <Compile Include="ObservableListInit.cs" />
-    <Compile Include="ObservableLocalVariable.cs" />
-    <Compile Include="ObservableMemberBinding.cs" />
-    <Compile Include="ObservableMemberExpression.cs" />
-    <Compile Include="ObservableMemberInit.cs" />
-    <Compile Include="Public\NotifyValue.cs" />
-    <Compile Include="ObservableMethodCallBase.cs" />
-    <Compile Include="ObservableNewArrayExpression.cs" />
-    <Compile Include="ObservableNewExpression1.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>ObservableNewExpression.tt</DependentUpon>
-    </Compile>
-    <Compile Include="ObservableParameter.cs" />
-    <Compile Include="Public\ObservableProxyAttribute.cs" />
-    <Compile Include="ObservableMethodCall.cs">
-      <DependentUpon>ObservableMethodCall.tt</DependentUpon>
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-    </Compile>
-    <Compile Include="ObservableStaticMethodCall.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>ObservableStaticMethodCall.tt</DependentUpon>
-    </Compile>
-    <Compile Include="ObservableMethodProxyCall.cs">
-      <DependentUpon>ObservableMethodProxyCall.tt</DependentUpon>
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-    </Compile>
-    <Compile Include="ObservableStaticProxyCall.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>ObservableStaticProxyCall.tt</DependentUpon>
-    </Compile>
-    <Compile Include="ObservableProxyCallBase.cs" />
-    <Compile Include="ObservableProxyExpression.cs" />
-    <Compile Include="ObservableReversableExpression.cs" />
-    <Compile Include="ObservableStaticMethodCallBase.cs" />
-    <Compile Include="ObservableTypeBinaryExpression.cs" />
-    <Compile Include="ObservableUnaryExpression.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Public\ValueChangedEventArgs.cs" />
-    <Compile Include="ReflectionHelper.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Public\Observable.tt">
+    <None Update="ObservableDeferredProxyElement.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>Observable.cs</LastGenOutput>
+      <LastGenOutput>ObservableDeferredProxyElement.cs</LastGenOutput>
     </None>
-    <None Include="Public\ReversableFunctionTypes.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>ReversableFunctionTypes.cs</LastGenOutput>
-    </None>
-    <None Include="Public\FunctionTypes.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>FunctionTypes.cs</LastGenOutput>
-    </None>
-    <None Include="ObservableNewExpression.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>ObservableNewExpression1.cs</LastGenOutput>
-    </None>
-    <None Include="ObservableMethodCall.tt">
+    <None Update="ObservableMethodCall.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>ObservableMethodCall.cs</LastGenOutput>
     </None>
-    <None Include="ObservableStaticMethodCall.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>ObservableStaticMethodCall.cs</LastGenOutput>
-    </None>
-    <None Include="ObservableMethodProxyCall.tt">
+    <None Update="ObservableMethodProxyCall.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>ObservableMethodProxyCall.cs</LastGenOutput>
     </None>
-    <None Include="ObservableStaticProxyCall.tt">
+    <None Update="ObservableNewExpression.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>ObservableStaticProxyCall.cs</LastGenOutput>
+      <LastGenOutput>ObservableNewExpression.cs</LastGenOutput>
     </None>
-  </ItemGroup>
-  <ItemGroup>
-    <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="ObservableSimpleMethodProxyCall.tt">
+    <None Update="ObservableSimpleMethodProxyCall.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>ObservableSimpleMethodProxyCall.cs</LastGenOutput>
     </None>
+    <None Update="ObservableStaticMethodCall.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>ObservableStaticMethodCall.cs</LastGenOutput>
+    </None>
+    <None Update="ObservableStaticProxyCall.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>ObservableStaticProxyCall.cs</LastGenOutput>
+    </None>
+    <None Update="Public\FunctionTypes.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>FunctionTypes.cs</LastGenOutput>
+    </None>
+    <None Update="Public\Observable.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>Observable.cs</LastGenOutput>
+    </None>
+    <None Update="Public\ReversableFunctionTypes.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>ReversableFunctionTypes.cs</LastGenOutput>
+    </None>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="ObservableDeferredProxyElement.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>ObservableDeferredProxyElement.cs</LastGenOutput>
-    </Content>
+    <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
   </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
+  <ItemGroup>
+    <Compile Update="ObservableDeferredProxyElement.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>ObservableDeferredProxyElement.tt</DependentUpon>
+    </Compile>
+    <Compile Update="ObservableMethodCall.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>ObservableMethodCall.tt</DependentUpon>
+    </Compile>
+    <Compile Update="ObservableMethodProxyCall.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>ObservableMethodProxyCall.tt</DependentUpon>
+    </Compile>
+    <Compile Update="ObservableNewExpression.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>ObservableNewExpression.tt</DependentUpon>
+    </Compile>
+    <Compile Update="ObservableSimpleMethodProxyCall.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>ObservableSimpleMethodProxyCall.tt</DependentUpon>
+    </Compile>
+    <Compile Update="ObservableStaticMethodCall.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>ObservableStaticMethodCall.tt</DependentUpon>
+    </Compile>
+    <Compile Update="ObservableStaticProxyCall.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>ObservableStaticProxyCall.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Public\FunctionTypes.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>FunctionTypes.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Public\Observable.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Observable.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Public\ReversableFunctionTypes.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>ReversableFunctionTypes.tt</DependentUpon>
+    </Compile>
+  </ItemGroup>
 </Project>

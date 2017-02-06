@@ -5,8 +5,8 @@ using System.Linq;
 using System.Text;
 
 using NMF.Utilities;
-using NMF.Transformations.Properties;
 using NMF.Transformations.Core;
+using System.Reflection;
 
 namespace NMF.Transformations
 {
@@ -34,7 +34,7 @@ namespace NMF.Transformations
         public void MarkInstantiatingFor(GeneralTransformationRule rule, Predicate<object[]> filter)
         {
             if (rule == null) throw new ArgumentNullException("rule");
-            if (rule.InputType.IsAssignableArrayFrom(InputType) && rule.OutputType.IsAssignableFrom(OutputType))
+            if (rule.InputType.IsAssignableArrayFrom(InputType) && rule.OutputType.GetTypeInfo().IsAssignableFrom(OutputType.GetTypeInfo()))
             {
                 if (filter != null)
                 {
@@ -47,7 +47,7 @@ namespace NMF.Transformations
             }
             else
             {
-                throw new InvalidOperationException(Resources.ErrMarkInstantiatingMustInherit);
+                throw new InvalidOperationException(ErrorStrings.MarkInstantiatingMustInherit);
             }
         }
 

@@ -1,10 +1,10 @@
 ﻿using NMF.Transformations.Core;
-using NMF.Transformations.Properties;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 
 namespace NMF.Transformations
@@ -22,8 +22,8 @@ namespace NMF.Transformations
         /// </summary>
         public InPlaceTransformationRule()
         {
-            var createOutput = this.GetType().GetMethod("Init");
-            needDependencies = createOutput.ReflectedType != typeof(InPlaceTransformationRule);
+            var createOutput = this.GetType().GetRuntimeMethod("Init", new[] { typeof(object[]), typeof(ITransformationContext) });
+            needDependencies = createOutput.DeclaringType != typeof(InPlaceTransformationRule);
         }
 
         /// <summary>
@@ -67,7 +67,7 @@ namespace NMF.Transformations
         public override Computation CreateComputation(object[] input, IComputationContext context)
         {
             if (input == null) return null;
-            if (input.Length != InputType.Length) throw new ArgumentException(string.Format(CultureInfo.CurrentCulture, Resources.ErrTransformationRuleWrongNumberOfArguments, this.GetType().Name));
+            if (input.Length != InputType.Length) throw new ArgumentException(string.Format(CultureInfo.CurrentCulture, ErrorStrings.TransformationRuleWrongNumberOfArguments, this.GetType().Name));
             return new SimpleComputation(this, input, context);
         }
 

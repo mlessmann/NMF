@@ -6,6 +6,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using NMF.Utilities;
+using System.Reflection;
 
 namespace NMF.CodeGen
 {
@@ -280,7 +281,7 @@ namespace NMF.CodeGen
                 return new CodePrimitiveExpression();
             }
             var type = obj.GetType();
-            if (type.IsEnum)
+            if (type.GetTypeInfo().IsEnum)
             {
                 if (Enum.IsDefined(type, obj))
                 {

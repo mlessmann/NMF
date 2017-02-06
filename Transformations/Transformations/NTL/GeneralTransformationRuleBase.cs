@@ -1,5 +1,4 @@
 ﻿using NMF.Transformations.Core;
-using NMF.Transformations.Properties;
 using NMF.Utilities;
 using NMF.Expressions;
 using System;
@@ -8,6 +7,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Text;
+using System.Reflection;
 
 namespace NMF.Transformations
 {
@@ -26,7 +26,7 @@ namespace NMF.Transformations
         public void MarkInstantiatingFor(GeneralTransformationRule rule, Predicate<TIn> filter)
         {
             if (rule == null) throw new ArgumentNullException("rule");
-            if (rule.InputType.IsAssignableArrayFrom(InputType) && (rule.OutputType == OutputType || rule.OutputType.IsAssignableFrom(OutputType)))
+            if (rule.InputType.IsAssignableArrayFrom(InputType) && (rule.OutputType == OutputType || rule.OutputType.GetTypeInfo().IsAssignableFrom(OutputType.GetTypeInfo())))
             {
                 Require(rule);
                 if (filter != null)
@@ -40,7 +40,7 @@ namespace NMF.Transformations
             }
             else
             {
-                throw new InvalidOperationException(Resources.ErrMarkInstantiatingMustInherit);
+                throw new InvalidOperationException(ErrorStrings.MarkInstantiatingMustInherit);
             }
         }
 
@@ -100,13 +100,13 @@ namespace NMF.Transformations
         public void RequireByType<TRequiredInput>()
             where TRequiredInput : class
         {
-            if (typeof(TRequiredInput).IsAssignableFrom(typeof(TIn)))
+            if (typeof(TRequiredInput).GetTypeInfo().IsAssignableFrom(typeof(TIn).GetTypeInfo()))
             {
                 RequireByType<TRequiredInput>(t => t as TRequiredInput);
             }
             else
             {
-                throw new InvalidOperationException(Resources.ErrRequires1ArgNoSelectorMustInherit);
+                throw new InvalidOperationException(ErrorStrings.Requires1ArgNoSelectorMustInherit);
             }
         }
 
@@ -254,7 +254,7 @@ namespace NMF.Transformations
         public ITransformationRuleDependency Require<TRequiredInput>(GeneralTransformationRule<TRequiredInput> rule, Predicate<TIn> filter)
             where TRequiredInput : class
         {
-            if (!typeof(TRequiredInput).IsAssignableFrom(typeof(TIn))) throw new InvalidOperationException(Resources.ErrCall1ArgNoSelectorMustInherit);
+            if (!typeof(TRequiredInput).GetTypeInfo().IsAssignableFrom(typeof(TIn).GetTypeInfo())) throw new InvalidOperationException(ErrorStrings.Call1ArgNoSelectorMustInherit);
             return Depend(filter != null ? new Predicate<Computation>(c => filter(c.GetInput(0) as TIn)) : null, c => c.CreateInputArray(), rule, null, true, false);
         }
 
@@ -463,7 +463,7 @@ namespace NMF.Transformations
         public ITransformationRuleDependency Call<TRequiredInput>(GeneralTransformationRule<TRequiredInput> rule, Predicate<TIn> filter)
             where TRequiredInput : class
         {
-            if (!typeof(TRequiredInput).IsAssignableFrom(typeof(TIn))) throw new InvalidOperationException(Resources.ErrCall1ArgNoSelectorMustInherit);
+            if (!typeof(TRequiredInput).GetTypeInfo().IsAssignableFrom(typeof(TIn).GetTypeInfo())) throw new InvalidOperationException(ErrorStrings.Call1ArgNoSelectorMustInherit);
             return Depend(filter != null ? new Predicate<Computation>(c => filter(c.GetInput(0) as TIn)) : null, c => c.CreateInputArray(), rule, null, false, false);
         }
 

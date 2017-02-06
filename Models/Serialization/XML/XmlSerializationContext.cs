@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Reflection;
 using System.Text;
 
 namespace NMF.Serialization
@@ -43,10 +44,8 @@ namespace NMF.Serialization
         private HashSet<ObjectPropertyPair> blockedProperties = new HashSet<ObjectPropertyPair>();
 
         private Queue<XmlIdentifierDelay> lostProperties = new Queue<XmlIdentifierDelay>();
-        private Queue<ISupportInitialize> inits = new Queue<ISupportInitialize>();
 
         internal Queue<XmlIdentifierDelay> LostProperties { get { return lostProperties; } }
-        internal Queue<ISupportInitialize> Inits { get { return inits; } }
 
         public virtual void RegisterId(string id, object value)
         {
@@ -68,10 +67,6 @@ namespace NMF.Serialization
                     throw new InvalidOperationException(string.Format("The reference {0} could not be resolved", p.Identifier));
                 }
                 p.OnResolveIdentifiedObject(resolved, this);
-            }
-            while (inits.Count > 0)
-            {
-                inits.Dequeue().EndInit();
             }
         }
 
@@ -212,7 +207,7 @@ namespace NMF.Serialization
                 paths = new List<Dictionary<string, object>>();
                 foreach (var pair in idStore)
                 {
-                    if (type.IsAssignableFrom(pair.Key))
+                    if (type.GetTypeInfo().IsAssignableFrom(pair.Key.GetTypeInfo()))
                     {
                         paths.Add(pair.Value);
                     }

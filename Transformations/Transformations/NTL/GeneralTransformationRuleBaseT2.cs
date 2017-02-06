@@ -1,5 +1,4 @@
-﻿using NMF.Transformations.Properties;
-using NMF.Transformations.Linq;
+﻿using NMF.Transformations.Linq;
 using NMF.Utilities;
 using System;
 using System.Collections;
@@ -9,6 +8,7 @@ using System.Linq;
 using System.Text;
 using NMF.Transformations.Core;
 using NMF.Expressions;
+using System.Reflection;
 
 namespace NMF.Transformations
 {
@@ -32,7 +32,7 @@ namespace NMF.Transformations
         {
             if (rule == null) throw new ArgumentNullException("rule");
 
-            if (rule.InputType.IsAssignableArrayFrom(InputType) && (rule.OutputType == OutputType || rule.OutputType.IsAssignableFrom(OutputType)))
+            if (rule.InputType.IsAssignableArrayFrom(InputType) && (rule.OutputType == OutputType || rule.OutputType.GetTypeInfo().IsAssignableFrom(OutputType.GetTypeInfo())))
             {
                 Require(rule);
                 if (filter != null)
@@ -46,7 +46,7 @@ namespace NMF.Transformations
             }
             else
             {
-                throw new InvalidOperationException(Resources.ErrMarkInstantiatingMustInherit);
+                throw new InvalidOperationException(ErrorStrings.MarkInstantiatingMustInherit);
             }
         }
 
@@ -113,13 +113,13 @@ namespace NMF.Transformations
             where TRequiredInput1 : class
             where TRequiredInput2 : class
         {
-            if (typeof(TRequiredInput1).IsAssignableFrom(typeof(TIn1)) && typeof(TRequiredInput2).IsAssignableFrom(typeof(TIn2)))
+            if (typeof(TRequiredInput1).GetTypeInfo().IsAssignableFrom(typeof(TIn1).GetTypeInfo()) && typeof(TRequiredInput2).GetTypeInfo().IsAssignableFrom(typeof(TIn2).GetTypeInfo()))
             {
                 RequireByType<TRequiredInput1, TRequiredInput2>((t1, t2) => t1 as TRequiredInput1, (t1, t2) => t2 as TRequiredInput2);
             }
             else
             {
-                throw new InvalidOperationException(Resources.ErrRequires2ArgNoSelectorMustInherit);
+                throw new InvalidOperationException(ErrorStrings.Requires2ArgNoSelectorMustInherit);
             }
             
         }

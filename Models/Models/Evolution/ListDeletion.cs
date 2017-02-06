@@ -6,6 +6,7 @@ using NMF.Models.Repository;
 using System.Collections;
 using NMF.Serialization;
 using System.ComponentModel;
+using System.Reflection;
 
 namespace NMF.Models.Evolution
 {
@@ -44,7 +45,7 @@ namespace NMF.Models.Evolution
         public void Apply(IModelRepository repository)
         {
             var parent = repository.Resolve(AbsoluteUri);
-            var property = parent.GetType().GetProperty(CollectionPropertyName);
+            var property = parent.GetType().GetRuntimeProperty(CollectionPropertyName);
             var list = property.GetValue(parent, null) as IList;
             
             for (int i = Math.Min(StartingIndex + Count - 1, list.Count - 1); i >= StartingIndex; i--)

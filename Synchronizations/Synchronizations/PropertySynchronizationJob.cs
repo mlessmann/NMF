@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -74,7 +75,7 @@ namespace NMF.Synchronizations
                     rightEx3.Value = leftEx3.Value;
                     break;
                 case SynchronizationDirection.LeftWins:
-                    if (typeof(TValue).IsValueType || leftEx3.Value != null)
+                    if (typeof(TValue).GetTypeInfo().IsValueType || leftEx3.Value != null)
                     {
                         rightEx3.Value = leftEx3.Value;
                     }
@@ -88,7 +89,7 @@ namespace NMF.Synchronizations
                     leftEx3.Value = rightEx3.Value;
                     break;
                 case SynchronizationDirection.RightWins:
-                    if (typeof(TValue).IsValueType || rightEx3.Value != null)
+                    if (typeof(TValue).GetTypeInfo().IsValueType || rightEx3.Value != null)
                     {
                         leftEx3.Value = rightEx3.Value;
                     }
@@ -140,8 +141,8 @@ namespace NMF.Synchronizations
                         dependency = new PropertySynchronization<TValue>(rightEx4, val => leftSetter(left, val));
                     }
                     var test = context.Direction == SynchronizationDirection.LeftWins ?
-                        typeof(TValue).IsValueType || leftVal != null :
-                        !(typeof(TValue).IsValueType || rightVal != null);
+                        typeof(TValue).GetTypeInfo().IsValueType || leftVal != null :
+                        !(typeof(TValue).GetTypeInfo().IsValueType || rightVal != null);
                     if (test)
                     {
                         rightSetter(right, leftVal);

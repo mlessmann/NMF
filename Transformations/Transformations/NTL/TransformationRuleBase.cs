@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using NMF.Utilities;
-using NMF.Transformations.Properties;
 using System.Collections;
 using NMF.Transformations.Core;
+using System.Reflection;
 
 namespace NMF.Transformations
 {
@@ -44,7 +44,7 @@ namespace NMF.Transformations
         {
             var inputTypes = new Type[] { typeof(TBaseIn) };
             var outputType = typeof(TBaseOut);
-            if (inputTypes.IsAssignableArrayFrom(InputType) && (outputType == OutputType || outputType.IsAssignableFrom(OutputType)))
+            if (inputTypes.IsAssignableArrayFrom(InputType) && (outputType == OutputType || outputType.GetTypeInfo().IsAssignableFrom(OutputType.GetTypeInfo())))
             {
                 var rule = Transformation.GetRulesExact(inputTypes, outputType).FirstOrDefault();
                 if (rule != null)
@@ -77,13 +77,13 @@ namespace NMF.Transformations
             where TRequiredInput : class
             where TRequiredOutput : class
         {
-            if (typeof(TRequiredInput).IsAssignableFrom(typeof(TIn)) && typeof(TRequiredOutput).IsAssignableFrom(OutputType))
+            if (typeof(TRequiredInput).GetTypeInfo().IsAssignableFrom(typeof(TIn).GetTypeInfo()) && typeof(TRequiredOutput).GetTypeInfo().IsAssignableFrom(OutputType.GetTypeInfo()))
             {
                 RequireByType<TRequiredInput, TRequiredOutput>(t => t as TRequiredInput, persistor);
             }
             else
             {
-                throw new InvalidOperationException(Resources.ErrRequires1ArgNoSelectorMustInherit);
+                throw new InvalidOperationException(ErrorStrings.Requires1ArgNoSelectorMustInherit);
             }
         }
 
@@ -119,7 +119,7 @@ namespace NMF.Transformations
             where TRequiredInput : class
             where TRequiredOutput : class
         {
-            if (typeof(TRequiredInput).IsAssignableFrom(typeof(TIn)))
+            if (typeof(TRequiredInput).GetTypeInfo().IsAssignableFrom(typeof(TIn).GetTypeInfo()))
             {
                 Predicate<Computation> f = null;
                 if (filter != null)
@@ -134,7 +134,7 @@ namespace NMF.Transformations
             }
             else
             {
-                throw new InvalidOperationException(Resources.ErrRequiresTransNoSelectorMustInherit);
+                throw new InvalidOperationException(ErrorStrings.RequiresTransNoSelectorMustInherit);
             }
         }
 
@@ -323,13 +323,13 @@ namespace NMF.Transformations
             where TRequiredInput : class
             where TRequiredOutput : class
         {
-            if (typeof(TRequiredInput).IsAssignableFrom(typeof(TIn)))
+            if (typeof(TRequiredInput).GetTypeInfo().IsAssignableFrom(typeof(TIn).GetTypeInfo()))
             {
                 CallByType<TRequiredInput, TRequiredOutput>(t => t as TRequiredInput, persistor);
             }
             else
             {
-                throw new InvalidOperationException(Resources.ErrCall1ArgNoSelectorMustInherit);
+                throw new InvalidOperationException(ErrorStrings.Call1ArgNoSelectorMustInherit);
             }
         }
 
@@ -354,7 +354,7 @@ namespace NMF.Transformations
             }
             else
             {
-                throw new InvalidOperationException(Resources.ErrCallTransNoSelectorMustInherit);
+                throw new InvalidOperationException(ErrorStrings.CallTransNoSelectorMustInherit);
             }
         }
 
@@ -582,7 +582,7 @@ namespace NMF.Transformations
         public ITransformationRuleDependency CallOutputSensitive<TRequiredInput>(GeneralTransformationRule<TRequiredInput> rule, Func<TIn, TOut, bool> filter)
             where TRequiredInput : class
         {
-            if (!typeof(TRequiredInput).IsAssignableFrom(typeof(TIn))) throw new InvalidOperationException(Resources.ErrCall1ArgNoSelectorMustInherit);
+            if (!typeof(TRequiredInput).GetTypeInfo().IsAssignableFrom(typeof(TIn).GetTypeInfo())) throw new InvalidOperationException(ErrorStrings.Call1ArgNoSelectorMustInherit);
             if (rule == null) throw new ArgumentNullException("rule");
             return Depend(filter != null ?
                 new Predicate<Computation>(c => filter(c.GetInput(0) as TIn, c.Output as TOut))
@@ -1221,7 +1221,7 @@ namespace NMF.Transformations
 
             if (inputSelector == null)
             {
-                if (typeof(TTraceInput).IsAssignableFrom(typeof(TIn)))
+                if (typeof(TTraceInput).GetTypeInfo().IsAssignableFrom(typeof(TIn).GetTypeInfo()))
                 {
                     inputSelector = (i, o) => i as TTraceInput;
                 }
@@ -1233,7 +1233,7 @@ namespace NMF.Transformations
 
             if (outputSelector == null)
             {
-                if (typeof(TTraceOutput).IsAssignableFrom(typeof(TOut)))
+                if (typeof(TTraceOutput).GetTypeInfo().IsAssignableFrom(typeof(TOut).GetTypeInfo()))
                 {
                     outputSelector = (i, o) => o as TTraceOutput;
                 }

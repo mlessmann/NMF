@@ -35,7 +35,7 @@ namespace NMF.Models.Evolution
         {
             var parent = repository.Resolve(AbsoluteUri);
             var newValue = GetNewValue(repository);
-            parent?.GetType().GetProperty(PropertyName)?.SetValue(parent, newValue, null);
+            parent?.GetType().GetRuntimeProperty(PropertyName)?.SetValue(parent, newValue, null);
         }
 
         protected abstract T GetNewValue(IModelRepository repository);

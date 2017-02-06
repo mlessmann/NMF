@@ -4,8 +4,8 @@ using System.Text;
 using System.Linq;
 using System.Diagnostics;
 using System.Globalization;
-using NMF.Transformations.Properties;
 using NMF.Transformations.Core;
+using System.Reflection;
 
 namespace NMF.Transformations
 {
@@ -34,7 +34,7 @@ namespace NMF.Transformations
             while (currentType != typeof(ReflectiveTransformation))
             {
                 typeStack.Push(currentType);
-                currentType = currentType.BaseType;
+                currentType = currentType.GetTypeInfo().BaseType;
             }
             return typeStack;
         }
@@ -133,18 +133,17 @@ namespace NMF.Transformations
             {
                 Reflector.ReflectInType<T>(type, (ruleType, rule) =>
                 {
-                    var overridden = ruleType.GetCustomAttributes(typeof(OverrideRuleAttribute), false);
+                    var overridden = ruleType.GetTypeInfo().GetCustomAttribute<OverrideRuleAttribute>(false);
                     rules.Add(ruleType, rule);
-                    if (overridden != null && overridden.Length > 0)
+                    if (overridden != null)
                     {
-                        var overrd = overridden[0] as OverrideRuleAttribute;
-                        if (!rules.ContainsKey(ruleType.BaseType))
+                        if (!rules.ContainsKey(ruleType.GetTypeInfo().BaseType))
                         {
                             Debug.WriteLine("The rule {0} could not be marked as override. No suitable transformation rule found to override.", ruleType.Name);
                         }
                         else
                         {
-                            rules[ruleType.BaseType] = rule;
+                            rules[ruleType.GetTypeInfo().BaseType] = rule;
                         }
                     }
                 });
@@ -164,7 +163,7 @@ namespace NMF.Transformations
                     {
                         if (customRule == null) continue;
                         var ruleType = customRule.GetType();
-                        if (rules.ContainsKey(ruleType)) throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture, Resources.ErrReflectiveTransformationCustomRulesRuleTypeAlreadyInUse, ruleType.Name));
+                        if (rules.ContainsKey(ruleType)) throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture, ErrorStrings.ReflectiveTransformationCustomRulesRuleTypeAlreadyInUse, ruleType.Name));
                         rules.Add(ruleType, customRule);
                     }
                 }
@@ -188,10 +187,10 @@ namespace NMF.Transformations
             if (persistor == null) throw new ArgumentNullException("persistor");
 
             Type target = typeof(T);
-            foreach (var item in transformationType.GetNestedTypes())
+            foreach (var item in transformationType.GetTypeInfo().DeclaredNestedTypes)
             {
                 if (item.IsSubclassOf(target) && !item.IsAbstract && !item.IsGenericTypeDefinition)
-                    persistor(item, (Activator.CreateInstance(item) as T));
+                    persistor(item.AsType(), (Activator.CreateInstance(item.AsType()) as T));
             }
         }
     }

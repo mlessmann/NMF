@@ -1,5 +1,5 @@
-﻿using System.Collections.Generic;
-using CommandLine;
+﻿using CommandLine;
+using System.Collections.Generic;
 using System.Reflection;
 
 namespace NMF.Benchmarks
@@ -12,7 +12,7 @@ namespace NMF.Benchmarks
         /// <summary>
         /// Measure Memory consumption
         /// </summary>
-        [Option('m', "memory", Required = false, DefaultValue = false, HelpText = "Measure Memory consumption")]
+        [Option('m', "memory", Required = false, Default = false, HelpText = "Measure Memory consumption")]
         public bool Memory { get; set; }
 
         /// <summary>
@@ -24,25 +24,25 @@ namespace NMF.Benchmarks
         /// <summary>
         /// Defines the number of iterations the benchmark should be repeated
         /// </summary>
-        [Option('r', "runs", Required = false, DefaultValue = 5, HelpText = "Defines the number of iterations the benchmark should be repeated")]
+        [Option('r', "runs", Required = false, Default = 5, HelpText = "Defines the number of iterations the benchmark should be repeated")]
         public int Runs { get; set; }
 
         /// <summary>
         /// The number of times a modification-analysis loop should be repeated
         /// </summary>
-        [Option('x', "iterations", Required = false, DefaultValue = 10, HelpText = "The number of times a modification-analysis loop should be repeated")]
+        [Option('x', "iterations", Required = false, Default = 10, HelpText = "The number of times a modification-analysis loop should be repeated")]
         public int Iterations { get; set; }
 
         /// <summary>
         /// The analyzers. If no analyzer is provided, all available analyzers will be selected.
         /// </summary>
-        [ValueList(typeof(HashSet<string>))]
+        [Value(0, Required = false)]
         public HashSet<string> Analyzers { get; set; }
 
         /// <summary>
         /// Determines whether the analysis benchmark should run in batch mode
         /// </summary>
-        [Option('b', "batch", Required = false, HelpText = "If set, the analysis runs in batch mode", MutuallyExclusiveSet = "batch")]
+        [Option('b', "batch", Required = false, HelpText = "If set, the analysis runs in batch mode", SetName = "batchinc")]
         public bool Batch
         {
             get
@@ -58,7 +58,7 @@ namespace NMF.Benchmarks
         /// <summary>
         /// Determines whether the analysis benchmark should run in incremental mode
         /// </summary>
-        [Option('i', "incremental", Required = false, HelpText = "If set, the analysis runs in incremental mode", MutuallyExclusiveSet = "inc")]
+        [Option('i', "incremental", Required = false, HelpText = "If set, the analysis runs in incremental mode", SetName = "batchinc")]
         public bool Incremental { get; set; }
 
         /// <summary>
@@ -85,8 +85,7 @@ namespace NMF.Benchmarks
         public BenchmarkOptions()
         {
             Incremental = true;
-            Runs = 5;
-            Id = Assembly.GetExecutingAssembly().GetName().Name;
+            Id = Assembly.GetEntryAssembly().GetName().Name;
         }
     }
 }

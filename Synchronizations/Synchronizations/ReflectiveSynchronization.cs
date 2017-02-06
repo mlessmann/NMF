@@ -3,6 +3,7 @@ using NMF.Transformations.Core;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -33,7 +34,7 @@ namespace NMF.Synchronizations
             while (currentType != typeof(ReflectiveSynchronization))
             {
                 typeStack.Push(currentType);
-                currentType = currentType.BaseType;
+                currentType = currentType.GetTypeInfo().BaseType;
             }
             return typeStack;
         }

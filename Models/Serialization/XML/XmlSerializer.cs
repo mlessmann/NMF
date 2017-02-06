@@ -158,9 +158,9 @@ namespace NMF.Serialization
 
         private void EnqueueBaseTypes(ITypeSerializationInfo info)
         {
-            if (info.Type.BaseType != null)
+            if (info.Type.GetTypeInfo().BaseType != null)
             {
-                GetSerializationInfo(info.Type.BaseType, true);
+                GetSerializationInfo(info.Type.GetTypeInfo().BaseType, true);
             }
             initializationQueue.Enqueue(() => InitializeTypeSerializationInfo(info));
         }
@@ -218,62 +218,39 @@ namespace NMF.Serialization
 
         protected virtual void InitializeTypeSerializationInfo(ITypeSerializationInfo serializationInfo)
         {
-            Type type = serializationInfo.Type;
+            var typeInfo = serializationInfo.Type.GetTypeInfo();
             XmlTypeSerializationInfo info = serializationInfo as XmlTypeSerializationInfo;
 
             if (info == null) throw new NotSupportedException("Cannot initialize other serialization info types");
-
-            string identifier = null;
-            IPropertySerializationInfo[] constructorInfos = null;
-            if (type.IsGenericType)
+            
+            if (typeInfo.IsGenericType)
             {
-                var genericTypes = type.GetGenericArguments().Select(t => t.Name).Aggregate((a, b) => a + "-" + b);
-                var sanitizedTypeName = type.Name.Substring(0, type.Name.IndexOf('`'));
+                var genericTypes = typeInfo.GenericTypeArguments.Select(t => t.Name).Aggregate((a, b) => a + "-" + b);
+                var sanitizedTypeName = typeInfo.Name.Substring(0, typeInfo.Name.IndexOf('`'));
                 info.ElementName = sanitizedTypeName + "_" + genericTypes + "_";
             }
             else
-                info.ElementName = Settings.GetPersistanceString(type.Name);
+                info.ElementName = Settings.GetPersistanceString(typeInfo.Name);
             info.Namespace = Settings.DefaultNamespace;
+            
+            info.ElementName = Settings.GetPersistanceString(typeInfo.GetCustomAttribute<XmlElementNameAttribute>(false)?.ElementName ?? info.ElementName);
+            info.Namespace = typeInfo.GetCustomAttribute<XmlNamespaceAttribute>(false)?.Namespace ?? info.Namespace;
+            info.NamespacePrefix = typeInfo.GetCustomAttribute<XmlNamespacePrefixAttribute>(false)?.NamespacePrefix;
 
-            foreach (object att in type.GetCustomAttributes(typeof(XmlElementNameAttribute), false))
-            {
-                info.ElementName = Settings.GetPersistanceString((att as XmlElementNameAttribute).ElementName);
-            }
+            var constructorAttribute = typeInfo.GetCustomAttribute<XmlConstructorAttribute>(false);
+            if (constructorAttribute != null)
+                info.ConstructorProperties = new XmlPropertySerializationInfo[constructorAttribute.ParameterCount];
 
-            foreach (object att in type.GetCustomAttributes(typeof(XmlNamespaceAttribute), false))
+            var identifier = typeInfo.GetCustomAttribute<XmlIdentifierAttribute>(false)?.Identifier;
+            var ignoredProperties = typeInfo.GetCustomAttributes<XmlIgnorePropertyAttribute>(false).Select(a => a.Property).ToList();
+            
+            if (typeof(IEnumerable).GetTypeInfo().IsAssignableFrom(typeInfo))
             {
-                info.Namespace = (att as XmlNamespaceAttribute).Namespace;
-            }
-
-            foreach (object att in type.GetCustomAttributes(typeof(XmlNamespacePrefixAttribute), false))
-            {
-                info.NamespacePrefix = (att as XmlNamespacePrefixAttribute).NamespacePrefix;
-            }
-
-            foreach (object att in type.GetCustomAttributes(typeof(XmlConstructorAttribute), false))
-            {
-                constructorInfos = new XmlPropertySerializationInfo[(att as XmlConstructorAttribute).ParameterCount];
-                info.ConstructorProperties = constructorInfos;
-            }
-
-            foreach (object att in type.GetCustomAttributes(typeof(XmlIdentifierAttribute), false))
-            {
-                identifier = (att as XmlIdentifierAttribute).Identifier;
-            }
-
-            List<string> ignoredProperties = new List<string>();
-            foreach (object att in type.GetCustomAttributes(typeof(XmlIgnorePropertyAttribute), false))
-            {
-                ignoredProperties.Add((att as XmlIgnorePropertyAttribute).Property);
-            }
-
-            if (typeof(IEnumerable).IsAssignableFrom(type))
-            {
-                foreach (Type i in type.GetInterfaces())
+                foreach (Type i in typeInfo.ImplementedInterfaces)
                 {
-                    if (i.IsGenericType && i.GetGenericTypeDefinition() == genericCollection)
+                    if (i.GetTypeInfo().IsGenericType && i.GetGenericTypeDefinition() == genericCollection)
                     {
-                        Type collType = i.GetGenericArguments()[0];
+                        Type collType = i.GetTypeInfo().GenericTypeArguments[0];
                         info.CollectionType = i;
                         var converter = GetTypeConverter(collType);
                         if (converter == null || !converter.CanConvertFrom(typeof(string)) || !converter.CanConvertTo(typeof(string)))
@@ -283,10 +260,10 @@ namespace NMF.Serialization
                         break;
                     }
                 }
-                if (info.CollectionType == null && type.IsInterface && type.IsGenericType && type.GetGenericTypeDefinition() == genericCollection)
+                if (info.CollectionType == null && typeInfo.IsInterface && typeInfo.IsGenericType && typeInfo.GetGenericTypeDefinition() == genericCollection)
                 {
-                    info.CollectionType = type;
-                    info.CollectionItemType = GetSerializationInfo(type.GetGenericArguments()[0], true);
+                    info.CollectionType = typeInfo.AsType();
+                    info.CollectionItemType = GetSerializationInfo(typeInfo.GenericTypeArguments[0], true);
                 }
 
                 if (info.CollectionType != null)
@@ -294,10 +271,10 @@ namespace NMF.Serialization
                     info.CreateCollectionAddMethod();
                 }
             }
-            Type constructorType = type;
-            if (type.BaseType != null)
+            TypeInfo constructorType = typeInfo;
+            if (typeInfo.BaseType != null)
             {
-                var parentTsi = GetSerializationInfo(type.BaseType, true);
+                var parentTsi = GetSerializationInfo(typeInfo.BaseType, true);
                 info.BaseTypes.Add(parentTsi);
                 if (!info.IsIdentified && parentTsi.IsIdentified)
                 {
@@ -307,39 +284,39 @@ namespace NMF.Serialization
                         info.IdentifierProperty = identifierProperty;
                     }
                 }
-                if (parentTsi.ConstructorProperties != null && constructorInfos != null)
+                if (parentTsi.ConstructorProperties != null && info.ConstructorProperties != null)
                 {
-                    Array.Copy(parentTsi.ConstructorProperties, constructorInfos, Math.Min(parentTsi.ConstructorProperties.Length, constructorInfos.Length));
+                    Array.Copy(parentTsi.ConstructorProperties, info.ConstructorProperties, Math.Min(parentTsi.ConstructorProperties.Length, info.ConstructorProperties.Length));
                 }
             }
-            foreach (var pi in type.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly))
+            foreach (var pi in typeInfo.DeclaredProperties)
             {
                 var indexParams = pi.GetIndexParameters();
                 if (indexParams == null || indexParams.Length == 0)
                 {
                     if (!ignoredProperties.Contains(pi.Name))
                     {
-                        CreatePropertySerializationInfo(info, identifier, constructorInfos, pi);
+                        CreatePropertySerializationInfo(info, identifier, info.ConstructorProperties, pi);
                     }
                 }
             }
-            if (constructorInfos != null)
+            if (info.ConstructorProperties != null)
             {
-                Type[] ts = new Type[constructorInfos.GetLength(0)];
-                for (int i = 0; i < constructorInfos.GetLength(0); i++)
+                Type[] ts = new Type[info.ConstructorProperties.GetLength(0)];
+                for (int i = 0; i < info.ConstructorProperties.GetLength(0); i++)
                 {
-                    ts[i] = constructorInfos[i] == null ? typeof(object) : constructorInfos[i].PropertyType.Type;
+                    ts[i] = info.ConstructorProperties[i] == null ? typeof(object) : info.ConstructorProperties[i].PropertyType.Type;
                 }
-                info.Constructor = constructorType.GetConstructor(ts);
-                if (info.Constructor == null) throw new InvalidOperationException("No suitable constructor found for type " + type.FullName);
+                info.Constructor = constructorType.DeclaredConstructors.FirstOrDefault(ci => ci.GetParameters().Select(p => p.ParameterType).SequenceEqual(ts));
+                if (info.Constructor == null) throw new InvalidOperationException("No suitable constructor found for type " + typeInfo.FullName);
             }
             else
             {
-                info.Constructor = constructorType.GetConstructor(Type.EmptyTypes);
+                info.Constructor = constructorType.DeclaredConstructors.FirstOrDefault(ci => !ci.IsStatic && ci.GetParameters().Length == 0);
             }
-            foreach (object att in type.GetCustomAttributes(typeof(XmlKnownTypeAttribute), false))
+            foreach (var att in typeInfo.GetCustomAttributes<XmlKnownTypeAttribute>(false))
             {
-                var t = (att as XmlKnownTypeAttribute).Type;
+                var t = att.Type;
                 if (t != null) GetSerializationInfo(t, true);
             }
 
@@ -349,15 +326,15 @@ namespace NMF.Serialization
         private void CreatePropertySerializationInfo(XmlTypeSerializationInfo typeSerializationInfo, string identifier, IPropertySerializationInfo[] constructorInfos, PropertyInfo pd)
         {
             var isId = Settings.TreatAsEqual(pd.Name, identifier);
-            var cParam = FetchAttribute<XmlConstructorParameterAttribute>(pd, true);
+            var cParam = pd.GetCustomAttribute<XmlConstructorParameterAttribute>(true);
 
-            if (!typeof(IEnumerable).IsAssignableFrom(pd.PropertyType) && !pd.CanWrite && !isId &&
+            if (!typeof(IEnumerable).GetTypeInfo().IsAssignableFrom(pd.PropertyType.GetTypeInfo()) && !pd.CanWrite && !isId &&
                 cParam != null) return;
 
             XmlPropertySerializationInfo p;
             p = CreatePropertySerializationInfo(pd);
 
-            DesignerSerializationVisibilityAttribute des = FetchAttribute<DesignerSerializationVisibilityAttribute>(pd, true);
+            DesignerSerializationVisibilityAttribute des = pd.GetCustomAttribute<DesignerSerializationVisibilityAttribute>(true);
 
             if ((des == null || des.Visibility == DesignerSerializationVisibility.Visible) && !p.IsReadOnly)
             {
@@ -395,7 +372,7 @@ namespace NMF.Serialization
             {
                 p.PropertyType = new StringConvertibleType(p.Converter, pd.PropertyType);
 
-                var defaultValue = Fetch(FetchAttribute<DefaultValueAttribute>(pd, true), dva => dva.Value);
+                var defaultValue = Fetch(pd.GetCustomAttribute<DefaultValueAttribute>(true), dva => dva.Value);
                 if (defaultValue != null)
                 {
                     p.SetDefaultValue(defaultValue);
@@ -411,7 +388,7 @@ namespace NMF.Serialization
                 }
                 else
                 {
-                    var asAttribute = FetchAttribute<XmlAttributeAttribute>(pd, true);
+                    var asAttribute = pd.GetCustomAttribute<XmlAttributeAttribute>(true);
                     if (asAttribute == null || !asAttribute.SerializeAsAttribute)
                     {
                         typeSerializationInfo.DeclaredElementProperties.Add(p);
@@ -424,7 +401,7 @@ namespace NMF.Serialization
             }
             else
             {
-                var asAttribute = FetchAttribute<XmlAttributeAttribute>(pd, true);
+                var asAttribute = pd.GetCustomAttribute<XmlAttributeAttribute>(true);
                 if (asAttribute == null || !asAttribute.SerializeAsAttribute)
                 {
                     typeSerializationInfo.DeclaredElementProperties.Add(p);
@@ -439,16 +416,16 @@ namespace NMF.Serialization
             p.ElementName = Settings.GetPersistanceString(pd.Name);
             p.Namespace = Settings.DefaultNamespace;
             // override element name settings
-            var elementName = Fetch(FetchAttribute<XmlElementNameAttribute>(pd, true), att => att.ElementName);
+            var elementName = Fetch(pd.GetCustomAttribute<XmlElementNameAttribute>(true), att => att.ElementName);
             if (elementName != null) p.ElementName = Settings.GetPersistanceString(elementName);
-            var ns = Fetch(FetchAttribute<XmlNamespaceAttribute>(pd, true), att => att.Namespace);
+            var ns = Fetch(pd.GetCustomAttribute<XmlNamespaceAttribute>(true), att => att.Namespace);
             if (ns != null) p.Namespace = Settings.GetPersistanceString(ns);
-            var nsPrefix = Fetch(FetchAttribute<XmlNamespacePrefixAttribute>(pd, true), att => att.NamespacePrefix);
+            var nsPrefix = Fetch(pd.GetCustomAttribute<XmlNamespacePrefixAttribute>(true), att => att.NamespacePrefix);
             if (nsPrefix != null) p.NamespacePrefix = Settings.GetPersistanceString(nsPrefix);
-            p.IdentificationMode = Fetch(FetchAttribute<XmlIdentificationModeAttribute>(pd, true), att => att.Mode);
+            p.IdentificationMode = Fetch(pd.GetCustomAttribute<XmlIdentificationModeAttribute>(true), att => att.Mode);
 
             // find opposite
-            var oppositeAtt = FetchAttribute<XmlOppositeAttribute>(pd, true);
+            var oppositeAtt = pd.GetCustomAttribute<XmlOppositeAttribute>(true);
             if (oppositeAtt != null)
             {
                 var oppositeType = p.PropertyType;
@@ -472,7 +449,7 @@ namespace NMF.Serialization
 
         private static TypeConverter GetTypeConverter(PropertyInfo pd)
         {
-            var converterType = Fetch(FetchAttribute<XmlTypeConverterAttribute>(pd, true), att => att.Type);
+            var converterType = Fetch(pd.GetCustomAttribute<XmlTypeConverterAttribute>(true), att => att.Type);
             if (converterType != null)
             {
                 try
@@ -482,7 +459,7 @@ namespace NMF.Serialization
                 catch (Exception)
                 { }
             }
-            var converterTypeString = Fetch(FetchAttribute<TypeConverterAttribute>(pd, true), att => att.ConverterTypeName);
+            var converterTypeString = Fetch(pd.GetCustomAttribute<TypeConverterAttribute>(true), att => att.ConverterTypeName);
             if (converterTypeString != null)
             {
                 try
@@ -500,13 +477,13 @@ namespace NMF.Serialization
             TypeConverter converter;
             if (!standardTypes.TryGetValue(type, out converter))
             {
-                if (type.IsEnum)
+                if (type.GetTypeInfo().IsEnum)
                 {
                     converter = new EnumConverter(type);
                 }
                 else
                 {
-                    var converterTypeString = Fetch(FetchAttribute<TypeConverterAttribute>(type, true), att => att.ConverterTypeName);
+                    var converterTypeString = Fetch(type.GetTypeInfo().GetCustomAttribute<TypeConverterAttribute>(true), att => att.ConverterTypeName);
                     if (converterTypeString != null)
                     {
                         try
@@ -519,13 +496,6 @@ namespace NMF.Serialization
                 standardTypes.Add(type, converter);
             }
             return converter;
-        }
-
-        private static T FetchAttribute<T>(MemberInfo reflectedItem, bool inherit) where T : Attribute
-        {
-            var results = reflectedItem.GetCustomAttributes(typeof(T), inherit);
-            if (results == null || results.Length == 0) return null;
-            return results[0] as T;
         }
 
         private static TValue Fetch<T, TValue>(T obj, Func<T, TValue> func) where T : class
@@ -598,7 +568,6 @@ namespace NMF.Serialization
             XmlWriter xml = XmlWriter.Create(target, Settings.GetXmlWriterSettings());
             Serialize(source, xml, fragment);
             xml.Flush();
-            xml.Close();
         }
 
         /// <summary>
@@ -961,7 +930,7 @@ namespace NMF.Serialization
             else if (reader.NodeType != XmlNodeType.EndElement)
             {
                 object target = DeserializeInternal(reader, property, context);
-                if (!property.IsReadOnly && (target == null || property.PropertyType.Type.IsAssignableFrom(target.GetType())))
+                if (!property.IsReadOnly && (target == null || property.PropertyType.Type.GetTypeInfo().IsAssignableFrom(target.GetType().GetTypeInfo())))
                 {
                     property.SetValue(obj, target, context);
                 }
@@ -1034,7 +1003,6 @@ namespace NMF.Serialization
         public void Initialize(XmlReader reader, object obj, XmlSerializationContext context)
         {
             if (obj == null) return;
-            if (obj is ISupportInitialize) ((ISupportInitialize)obj).BeginInit();
             ITypeSerializationInfo info = GetSerializationInfo(obj.GetType(), false);
             if (reader.HasAttributes)
             {
@@ -1068,8 +1036,6 @@ namespace NMF.Serialization
                 InitializeAttributeProperties(reader, obj, info, context);
             }
             InitializeElementProperties(reader, ref obj, info, context);
-            ISupportInitialize init = obj as ISupportInitialize;
-            if (init != null) context.Inits.Enqueue(init);
         }
 
         protected virtual bool OverrideIdentifiedObject(object obj, XmlReader reader, XmlSerializationContext context)
@@ -1182,13 +1148,15 @@ namespace NMF.Serialization
         {
             ITypeSerializationInfo info;
             if (type == null) throw new ArgumentNullException("type");
-            if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>))
+
+            var typeInfo = type.GetTypeInfo();
+            if (typeInfo.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>))
             {
-                return GetSerializationInfo(type.GetGenericArguments()[0], createIfNecessary);
+                return GetSerializationInfo(typeInfo.GenericTypeArguments[0], createIfNecessary);
             }
-            if (type.IsInterface)
+            if (typeInfo.IsInterface)
             {
-                foreach (XmlDefaultImplementationTypeAttribute att in type.GetCustomAttributes(typeof(XmlDefaultImplementationTypeAttribute), false))
+                foreach (var att in typeInfo.GetCustomAttributes<XmlDefaultImplementationTypeAttribute>(false))
                 {
                     return GetSerializationInfo(att.DefaultImplementationType, createIfNecessary);
                 }
@@ -1203,9 +1171,9 @@ namespace NMF.Serialization
                 {
                     foreach (XmlTypeSerializationInfo tmp in types.Values)
                     {
-                        if (tmp.Type.IsAssignableFrom(type))
+                        if (tmp.Type.GetTypeInfo().IsAssignableFrom(typeInfo))
                         {
-                            if (info == null || info.Type.IsAssignableFrom(tmp.Type))
+                            if (info == null || info.Type.GetTypeInfo().IsAssignableFrom(tmp.Type.GetTypeInfo()))
                             {
                                 info = tmp;
                             }

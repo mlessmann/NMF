@@ -1,11 +1,10 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Expressions;
-using System.Reflection;
-using System.Reflection.Emit;
 using System.Text;
+using System.Reflection;
+using System.Linq.Expressions;
+using System.Collections;
 
 namespace NMF.Expressions
 {
@@ -13,65 +12,59 @@ namespace NMF.Expressions
     {
         public static bool IsValueType(Type t)
         {
-            return t.IsValueType;
-        }
-
-        public static bool IsValueType<T>()
-        {
-            return typeof(T).IsValueType;
+            return t.GetTypeInfo().IsValueType;
         }
 
         public static ConstructorInfo GetConstructor(Type type)
         {
-            return type.GetConstructors()[0];
+            return type.GetTypeInfo().DeclaredConstructors.Single();
+        }
+
+        public static bool IsValueType<T>()
+        {
+            return typeof(T).GetTypeInfo().IsValueType;
         }
 
         internal static Action<T, TField> CreateDynamicFieldSetter<T, TField>(FieldInfo field)
         {
-            var setMethod = new DynamicMethod("_set_" + field.Name, typeof(void), new Type[] { field.DeclaringType, field.FieldType }, field.DeclaringType);
-            var setGenerator = setMethod.GetILGenerator();
-            setGenerator.Emit(OpCodes.Ldarg_0);
-            setGenerator.Emit(OpCodes.Ldarg_1);
-            setGenerator.Emit(OpCodes.Stfld, field);
-            setGenerator.Emit(OpCodes.Ret);
-            return setMethod.CreateDelegate(typeof(Action<T, TField>)) as Action<T, TField>;
+            var target = Expression.Parameter(field.DeclaringType, "target");
+            var value = Expression.Parameter(field.FieldType, "value");
+            var lambda = Expression.Lambda<Action<T, TField>>(Expression.Assign(Expression.Field(target, field), value), target, value);
+            return lambda.Compile();
         }
 
         internal static Func<T, TField> CreateDynamicFieldGetter<T, TField>(FieldInfo field)
         {
-            var getMethod = new DynamicMethod("_get_" + field.Name, field.FieldType, new Type[] { field.DeclaringType }, field.DeclaringType);
-            var getGenerator = getMethod.GetILGenerator();
-            getGenerator.Emit(OpCodes.Ldarg_0);
-            getGenerator.Emit(OpCodes.Ldfld, field);
-            getGenerator.Emit(OpCodes.Ret);
-            return getMethod.CreateDelegate(typeof(Func<T, TField>)) as Func<T, TField>;
+            var target = Expression.Parameter(field.DeclaringType, "target");
+            var lambda = Expression.Lambda<Func<T, TField>>(Expression.Field(target, field), target);
+            return lambda.Compile();
         }
 
         internal static object CreateDelegate(Type delegateType, MethodInfo method)
         {
-            return Delegate.CreateDelegate(delegateType, method);
+            return method.CreateDelegate(delegateType);
         }
 
         internal static object CreateDelegate(Type delegateType, object target, MethodInfo method)
         {
             try
             {
-                return Delegate.CreateDelegate(delegateType, target, method);
+                return method.CreateDelegate(delegateType, target);
             }
             catch (ArgumentException)
             {
-                return Delegate.CreateDelegate(delegateType, target, method.Name);
+                throw new NotSupportedException("You have just run into a known bug of NMF Expressions that is caused by a subtle bug of the .NET platform.");
             }
         }
 
         internal static TDelegate CreateDelegate<TDelegate>(MethodInfo method) where TDelegate : class
         {
-            return Delegate.CreateDelegate(typeof(TDelegate), method) as TDelegate;
+            return method.CreateDelegate(typeof(TDelegate)) as TDelegate;
         }
 
         internal static bool IsGenericType(Type t)
         {
-            return t.IsGenericType;
+            return t.GetTypeInfo().IsGenericType;
         }
 
         internal static TAttribute[] GetCustomAttributes<TAttribute>(MethodInfo method, bool inherit) where TAttribute : Attribute
@@ -81,12 +74,17 @@ namespace NMF.Expressions
 
         internal static bool IsAssignableFrom(Type baseType, Type assignable)
         {
-            return baseType.IsAssignableFrom(assignable);
+            return baseType.GetTypeInfo().IsAssignableFrom(assignable.GetTypeInfo());
         }
 
         internal static bool IsInstanceOf(Type type, object instance)
         {
-            return type.IsInstanceOfType(instance);
+            return instance != null && IsAssignableFrom(type, instance.GetType());
+        }
+
+        internal static MethodInfo GetAction(Expression<Action> expression)
+        {
+            return GetMethodInfo((LambdaExpression)expression);
         }
 
         internal static MethodInfo GetAction<T1>(Expression<Action<T1>> expression)
@@ -142,32 +140,34 @@ namespace NMF.Expressions
 
         internal static MethodInfo GetGetter(PropertyInfo property)
         {
-            return property.GetGetMethod();
+            return property.GetMethod;
         }
 
         internal static MethodInfo GetSetter(PropertyInfo property)
         {
-            return property.GetSetMethod();
+            return property.SetMethod;
         }
 
         internal static MethodInfo GetMethod(Type type, string name, Type[] types)
         {
-            return type.GetMethod(name, types);
+            return type.GetRuntimeMethod(name, types);
         }
 
         internal static PropertyInfo GetProperty(Type type, string name)
         {
-            return type.GetProperty(name);
+            return type.GetRuntimeProperty(name);
         }
 
         internal static MethodInfo GetRemoveMethod(Type collectionType, Type elementType)
         {
+            var collectionTypeInfo = collectionType.GetTypeInfo();
+            var elementTypeInfo = elementType.GetTypeInfo();
             if (ReflectionHelper.IsAssignableFrom(typeof(IList), collectionType))
             {
-                var map = collectionType.GetInterfaceMap(typeof(IList));
+                var map = collectionTypeInfo.GetRuntimeInterfaceMap(typeof(IList));
                 return map.TargetMethods[9];
             }
-            var methods = collectionType.GetMethods(BindingFlags.Instance | BindingFlags.Public);
+            var methods = collectionType.GetRuntimeMethods();
             foreach (var method in methods)
             {
                 if (method.Name == "Remove")
@@ -175,7 +175,7 @@ namespace NMF.Expressions
                     var parameters = method.GetParameters();
                     if (parameters != null && parameters.Length == 1)
                     {
-                        if (!parameters[0].IsOut && parameters[0].ParameterType.IsAssignableFrom(elementType))
+                        if (!parameters[0].IsOut && parameters[0].ParameterType.GetTypeInfo().IsAssignableFrom(elementTypeInfo))
                         {
                             return method;
                         }

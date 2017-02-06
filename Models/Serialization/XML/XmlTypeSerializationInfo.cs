@@ -250,7 +250,7 @@ namespace NMF.Serialization
         public void CreateCollectionAddMethod()
         {
             var itemType = CollectionItemType.Type;
-            var collectionAddMethod = CollectionType.GetMethod("Add", new Type[] { itemType });
+            var collectionAddMethod = CollectionType.GetRuntimeMethod("Add", new Type[] { itemType });
             var p = Expression.Parameter(typeof(object));
             var coll = Expression.Parameter(typeof(object));
             var body = Expression.Call(Expression.Convert(coll, CollectionType), collectionAddMethod, Expression.Convert(p, itemType));

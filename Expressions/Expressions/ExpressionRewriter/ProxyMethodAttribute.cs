@@ -20,7 +20,7 @@ namespace NMF.Expressions
             var proxyTypeArgs = new List<Type>();
             if (ReflectionHelper.IsGenericType(sourceMethod.DeclaringType))
             {
-                proxyTypeArgs.AddRange(sourceMethod.DeclaringType.GetGenericArguments());
+                proxyTypeArgs.AddRange(sourceMethod.DeclaringType.GetTypeInfo().GenericTypeArguments);
             }
             if (sourceMethod.IsGenericMethod)
             {
@@ -28,9 +28,9 @@ namespace NMF.Expressions
             }
             var typeArrayPointer = 0;
             var proxyType = this.ProxyType;
-            if (proxyType.IsGenericTypeDefinition)
+            if (proxyType.GetTypeInfo().IsGenericTypeDefinition)
             {
-                var typeArgs = new Type[proxyType.GetGenericArguments().Length];
+                var typeArgs = new Type[proxyType.GetTypeInfo().GenericTypeParameters.Length];
                 for (int i = 0; i < typeArgs.Length; i++)
                 {
                     typeArgs[i] = proxyTypeArgs[typeArrayPointer];
@@ -45,7 +45,7 @@ namespace NMF.Expressions
                 {
                     methodParamArgs[i] = proxyTypeArgs[i + typeArrayPointer];
                 }
-                proxyMethod = proxyType.GetMethods().Select(m =>
+                proxyMethod = proxyType.GetRuntimeMethods().Select(m =>
                 {
                     if (m.IsGenericMethodDefinition && m.Name == MethodName)
                     {
@@ -65,7 +65,7 @@ namespace NMF.Expressions
             }
             else
             {
-                proxyMethod = proxyType.GetMethod(MethodName, types);
+                proxyMethod = proxyType.GetRuntimeMethod(MethodName, types);
             }
             return proxyMethod != null;
         }

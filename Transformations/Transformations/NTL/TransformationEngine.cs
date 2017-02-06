@@ -4,8 +4,8 @@ using System.Text;
 using System.Linq;
 
 using NMF.Utilities;
-using NMF.Transformations.Properties;
 using NMF.Transformations.Core;
+using System.Reflection;
 
 namespace NMF.Transformations
 {
@@ -100,7 +100,7 @@ namespace NMF.Transformations
 
         private static void CheckTransformationRule<TOut>(object[] input, GeneralTransformationRule startRule) where TOut : class
         {
-            if (!(startRule is TransformationRuleBase<TOut>) && !startRule.OutputType.IsAssignableFrom(typeof(TOut)))
+            if (!(startRule is TransformationRuleBase<TOut>) && !startRule.OutputType.GetTypeInfo().IsAssignableFrom(typeof(TOut).GetTypeInfo()))
                 throw new InvalidOperationException("The output type of the specified start rule does not match the expected result type! Please provide a different start rule.");
             if (!startRule.InputType.IsInstanceArrayOfType(input))
                 throw new InvalidOperationException("The input parameter types of the specified start rule do not match the given inputs. Please choose a different start rule.");
@@ -355,7 +355,7 @@ namespace NMF.Transformations
 
         private static void ThrowRuleNotPartOfTransformation()
         {
-            throw new InvalidOperationException(Resources.ErrTransformationEngineStartRuleNotRuleOfTransformation);
+            throw new InvalidOperationException(ErrorStrings.TransformationEngineStartRuleNotRuleOfTransformation);
         }
 
         /// <summary>

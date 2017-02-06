@@ -1,5 +1,4 @@
 ﻿using NMF.Transformations.Core;
-using NMF.Transformations.Properties;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -27,7 +26,7 @@ namespace NMF.Transformations
         /// <remarks>Creation of transformation rule outputs is not supported for abstract transformation rules and thus, calling this method will result in an InvalidOperationException</remarks>
         public override TOut CreateOutput(TIn input, ITransformationContext context)
         {
-            throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture, Resources.ErrAbstractRuleCreateOutput, input != null ? input.GetType().Name : "(null)", this.GetType().Name));
+            throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture, ErrorStrings.AbstractRuleCreateOutput, input != null ? input.GetType().Name : "(null)", this.GetType().Name));
         }
     }
 
@@ -53,7 +52,7 @@ namespace NMF.Transformations
         /// <remarks>Creation of transformation rule outputs is not supported for abstract transformation rules and thus, calling this method will result in an InvalidOperationException</remarks>
         public override TOut CreateOutput(TIn1 input1, TIn2 input2, ITransformationContext context)
         {
-            throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture, Resources.ErrAbstractRuleT2CreateOutput, input1 != null ? input1.GetType().Name : "(null)", input2 != null ? input2.GetType().Name : "(null)", this.GetType().Name));
+            throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture, ErrorStrings.AbstractRuleT2CreateOutput, input1 != null ? input1.GetType().Name : "(null)", input2 != null ? input2.GetType().Name : "(null)", this.GetType().Name));
         }
     }
 }

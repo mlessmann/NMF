@@ -107,6 +107,11 @@ namespace NMF.Models.Repository
                     else
                     {
                         modelUri = uri;
+
+                        //TODO Workaround for https://github.com/Microsoft/vstest/issues/311
+                        if (!File.Exists(hintPath))
+                            hintPath = Path.Combine(AppContext.BaseDirectory, hintPath);
+
                         streamCreator = () => File.OpenRead(hintPath);
                     }
                     if (!models.TryGetValue(modelUri, out model))
@@ -162,11 +167,14 @@ namespace NMF.Models.Repository
         public Model Resolve(string path)
         {
             var file = new FileInfo(path);
+
+            //TODO Workaround for https://github.com/Microsoft/vstest/issues/311
+            if (!file.Exists)
+                file = new FileInfo(Path.Combine(AppContext.BaseDirectory, path));
+
             if (file.Exists)
             {
-                var element = Resolve(new Uri(file.FullName));
-                if (element == null) return null;
-                return element.Model;
+                return Resolve(new Uri(file.FullName))?.Model;
             }
             else
             {

@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 
 namespace NMF.Utilities
@@ -266,23 +267,7 @@ namespace NMF.Utilities
         {
             return new Tuple<T1, T2>(item, partner);
         }
-
-        /// <summary>
-        /// Returns whether the given array of inputs can be an instance array of the current type signature
-        /// </summary>
-        /// <param name="types">The type signature</param>
-        /// <param name="inputs">An array of objects that should be tested</param>
-        /// <returns>True, if the array of objects can be an array with the current type signature</returns>
-        public static bool IsInstanceArrayOfType(this Type[] types, object[] inputs)
-        {
-            if (types == null || inputs == null || types.Length != inputs.Length) return false;
-            for (int i = 0; i < types.Length; i++)
-            {
-                if (!types[i].IsInstanceOfType(inputs[i])) return false;
-            }
-            return true;
-        }
-
+        
         /// <summary>
         /// Returns whether the given array of inputs can be an instance array of the current type signature
         /// </summary>
@@ -290,12 +275,14 @@ namespace NMF.Utilities
         /// <param name="inputs">An array of objects that should be tested</param>
         /// <param name="allowNullValues">A value indicating whether null values in the array are allowed</param>
         /// <returns>True, if the array of objects can be an array with the current type signature</returns>
-        public static bool IsInstanceArrayOfType(this Type[] types, object[] inputs, bool allowNullValues)
+        public static bool IsInstanceArrayOfType(this Type[] types, object[] inputs, bool allowNullValues = false)
         {
             if (types == null || inputs == null || types.Length != inputs.Length) return false;
             for (int i = 0; i < types.Length; i++)
             {
-                if ((!allowNullValues || inputs[i] != null) && !types[i].IsInstanceOfType(inputs[i])) return false;
+                if (!allowNullValues && inputs[i] == null) return false;
+                if (inputs[i] == null && types[i].GetTypeInfo().IsClass) continue;
+                if (!types[i].GetTypeInfo().IsAssignableFrom(inputs[i].GetType().GetTypeInfo())) return false;
             }
             return true;
         }
@@ -313,7 +300,7 @@ namespace NMF.Utilities
             {
                 var type = inputs[i];
                 if (type == null) return false;
-                if (!types[i].IsAssignableFrom(type) && !type.IsInterface) return false;
+                if (!types[i].GetTypeInfo().IsAssignableFrom(type.GetTypeInfo()) && !type.GetTypeInfo().IsInterface) return false;
             }
             return true;
         }
@@ -416,7 +403,7 @@ namespace NMF.Utilities
                 {
                     if (nextUpper)
                     {
-                        sb.Append(char.ToUpper(ch, CultureInfo.CurrentCulture));
+                        sb.Append(char.ToUpper(ch));
                         nextUpper = false;
                     }
                     else
@@ -427,7 +414,7 @@ namespace NMF.Utilities
                         }
                         else
                         {
-                            sb.Append(char.ToLower(ch, CultureInfo.CurrentCulture));
+                            sb.Append(char.ToLower(ch));
                         }
                     }
                 }
@@ -451,15 +438,10 @@ namespace NMF.Utilities
         /// <returns>The implementation type. For classes, the class itself will be returned. For interfaces, a possible annotated default implementation type will be returned.</returns>
         public static Type GetImplementationType(this Type type)
         {
-            if (!type.IsAbstract && !type.IsInterface) return type;
+            if (!type.GetTypeInfo().IsAbstract && !type.GetTypeInfo().IsInterface) return type;
 
-            var customs = type.GetCustomAttributes(typeof(DefaultImplementationTypeAttribute), false);
-            if (customs != null && customs.Length > 0)
-            {
-                var defaultImplAtt = customs[0] as DefaultImplementationTypeAttribute;
-                return defaultImplAtt.DefaultImplementationType;
-            }
-            return null;
+            var attr = type.GetTypeInfo().GetCustomAttribute<DefaultImplementationTypeAttribute>(false);
+            return attr?.DefaultImplementationType;
         }
 
         /// <summary>

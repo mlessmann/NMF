@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 using System.Text;
 
 namespace NMF.Expressions
@@ -22,7 +23,7 @@ namespace NMF.Expressions
             object argument;
             if (parameterMappings.TryGetValue(node.Name, out argument))
             {
-                if (node.Type.IsInstanceOfType(argument))
+                if (node.Type.GetTypeInfo().IsAssignableFrom(argument.GetType().GetTypeInfo()))
                 {
                     return Expression.Constant(argument);
                 }
@@ -33,15 +34,15 @@ namespace NMF.Expressions
                 else
                 {
                     var notifyValueType = typeof(INotifyValue<>).MakeGenericType(node.Type);
-                    if (notifyValueType.IsInstanceOfType(argument))
+                    if (notifyValueType.GetTypeInfo().IsAssignableFrom(argument.GetType().GetTypeInfo()))
                     {
                         if (Recorders == null)
                         {
                             Recorders = new List<IChangeInfo>();
                         }
-                        var valueProperty = notifyValueType.GetProperty("Value");
+                        var valueProperty = notifyValueType.GetRuntimeProperty("Value");
                         var recorderType = typeof(ChangeRecorder<>).MakeGenericType(node.Type);
-                        var recorder = recorderType.GetConstructors()[0].Invoke(new object[] { argument });
+                        var recorder = recorderType.GetTypeInfo().DeclaredConstructors.First().Invoke(new object[] { argument });
 
                         Recorders.Add((IChangeInfo)recorder);
 

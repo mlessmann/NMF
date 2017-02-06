@@ -1,4 +1,6 @@
-﻿using NMF.Expressions;
+﻿using CommandLine;
+using CommandLine.Text;
+using NMF.Expressions;
 using NMF.Models;
 using NMF.Models.Repository;
 using System;
@@ -115,16 +117,16 @@ namespace NMF.Benchmarks
         /// <param name="args">The commandline arguments</param>
         public void Run(string[] args)
         {
-            var options = new BenchmarkOptions();
-            if (!CommandLine.Parser.Default.ParseArguments(args, options))
+            var parseResult = Parser.Default.ParseArguments<BenchmarkOptions>(args);
+            if (parseResult.Tag == ParserResultType.NotParsed)
             {
                 PrintGreeting();
-                PrintWrongArgumentsHelp(options);
+                PrintWrongArgumentsHelp(parseResult);
                 Environment.Exit(1);
                 return;
             }
 
-            Run(options);
+            Run(((Parsed<BenchmarkOptions>)parseResult).Value);
         }
 
         /// <summary>
@@ -160,11 +162,11 @@ namespace NMF.Benchmarks
 
             if (Log != null)
             {
-                Log.Close();
+                Log.Dispose();
             }
             if (Reporting != null)
             {
-                Reporting.Close();
+                Reporting.Dispose();
             }
         }
 
@@ -320,12 +322,11 @@ namespace NMF.Benchmarks
         /// Informs the user that used wrong arguments
         /// </summary>
         /// <param name="options">The benchmark options to be used</param>
-        protected virtual void PrintWrongArgumentsHelp(BenchmarkOptions options)
+        protected virtual void PrintWrongArgumentsHelp(ParserResult<BenchmarkOptions> result)
         {
             PrintErrorLog("You are using me wrongly.");
             Log.WriteLine("The correct usage is as follows:");
-            var helpText = CommandLine.Text.HelpText.AutoBuild(options);
-            Log.WriteLine(helpText.RenderParsingErrorsText(options, 4));
+            Log.WriteLine(HelpText.AutoBuild(result));
         }
 
         /// <summary>
@@ -342,22 +343,22 @@ namespace NMF.Benchmarks
         /// </summary>
         protected virtual void PrintGreeting()
         {
-            var executingAssembly = Assembly.GetExecutingAssembly();
+            var executingAssembly = Assembly.GetEntryAssembly();
             var executingAssemblyName = executingAssembly.GetName();
-            var descriptionAttribute = executingAssembly.GetCustomAttributes(typeof(AssemblyDescriptionAttribute), false);
-            var titleAttribute = executingAssembly.GetCustomAttributes(typeof(AssemblyTitleAttribute), false);
+            var descriptionAttribute = executingAssembly.GetCustomAttribute<AssemblyDescriptionAttribute>();
+            var titleAttribute = executingAssembly.GetCustomAttribute<AssemblyTitleAttribute>();
 
-            var title = titleAttribute != null && titleAttribute.Length > 0 ? (titleAttribute[0] as AssemblyTitleAttribute).Title : executingAssemblyName.Name;
+            var title = titleAttribute?.Title ?? executingAssemblyName.Name;
 
             Log.WriteLine("This is {0} in version {1}.", title, executingAssemblyName.Version);
-            if (descriptionAttribute != null && descriptionAttribute.Length > 0)
+            if (descriptionAttribute != null)
             {
-                Log.WriteLine((descriptionAttribute[0] as AssemblyDescriptionAttribute).Description);
+                Log.WriteLine(descriptionAttribute.Description);
             }
-            var copyrightAttribute = executingAssembly.GetCustomAttributes(typeof(AssemblyCopyrightAttribute), false);
-            if (copyrightAttribute != null && copyrightAttribute.Length > 0)
+            var copyrightAttribute = executingAssembly.GetCustomAttribute<AssemblyCopyrightAttribute>();
+            if (copyrightAttribute != null)
             {
-                Log.WriteLine((copyrightAttribute[0] as AssemblyCopyrightAttribute).Copyright);
+                Log.WriteLine(copyrightAttribute.Copyright);
             }
         }
     }

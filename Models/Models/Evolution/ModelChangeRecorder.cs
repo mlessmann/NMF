@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -172,8 +173,8 @@ namespace NMF.Models.Evolution
 
         private IModelChange CreatePropertyChange(IModelElement element, Uri absoluteUri, string propertyName, object newValue, Uri newValueUri)
         {
-            var propertyType = element.GetType().GetProperty(propertyName).PropertyType;
-            if (!propertyType.GetInterfaces().Contains(typeof(IModelElement))) // only model elements can be references
+            var propertyType = element.GetType().GetRuntimeProperty(propertyName).PropertyType;
+            if (!propertyType.GetTypeInfo().ImplementedInterfaces.Contains(typeof(IModelElement))) // only model elements can be references
                 return CreatePropertyChangeAttribute(propertyType, absoluteUri, propertyName, newValue);
             else if (GetAllReferences(element.GetClass()).Any(a => a.Name.Equals(propertyName, StringComparison.OrdinalIgnoreCase))) // a reference
                 return CreatePropertyChangeReference(propertyType, absoluteUri, propertyName, newValueUri);
@@ -204,7 +205,7 @@ namespace NMF.Models.Evolution
 
         private IModelChange CreateListInsertionReference(IModelElement element, Uri absoluteUri, string propertyName, int startingIndex, List<Uri> newItemsUris)
         {
-            var collectionType = element.GetType().GetProperty(propertyName).PropertyType;
+            var collectionType = element.GetType().GetRuntimeProperty(propertyName).PropertyType;
             var itemType = GetCollectionItemType(collectionType);
 
             var genericType = typeof(ListInsertionAssociation<>).MakeGenericType(itemType);
@@ -213,7 +214,7 @@ namespace NMF.Models.Evolution
 
         private IModelChange CreateListInsertionContainment(IModelElement element, Uri absoluteUri, string propertyName, int startingIndex, IList newItems)
         {
-            var collectionType = element.GetType().GetProperty(propertyName).PropertyType;
+            var collectionType = element.GetType().GetRuntimeProperty(propertyName).PropertyType;
             var itemType = GetCollectionItemType(collectionType);
 
             var listType = typeof(List<>).MakeGenericType(itemType);
@@ -231,9 +232,9 @@ namespace NMF.Models.Evolution
                 return collectionType.GetElementType();
             else
             {
-                return collectionType.GetInterfaces()
-                    .FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(ICollection<>))
-                    ?.GetGenericArguments()[0] ?? typeof(object);
+                return collectionType.GetTypeInfo().ImplementedInterfaces
+                    .FirstOrDefault(i => i.IsConstructedGenericType && i.GetGenericTypeDefinition() == typeof(ICollection<>))
+                    ?.GenericTypeArguments[0] ?? typeof(object);
             }
         }
 

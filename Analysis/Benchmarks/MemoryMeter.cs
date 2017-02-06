@@ -60,7 +60,7 @@ namespace NMF.Benchmarks
                     return 0;
                 }
 
-                long size = type.IsValueType ? 0 : MemoryForPointer;
+                long size = type.GetTypeInfo().IsValueType ? 0 : MemoryForPointer;
                 // loop over all base classes of the current object
                 while (type != null)
                 {
@@ -81,7 +81,7 @@ namespace NMF.Benchmarks
                                     size += MemoryForObject;
                                     size += sizeof(int);
                                     //memory used for elements
-                                    size += subObj.LongLength * GetTypeSize(fieldInfo.FieldType.GetElementType(), out checkInnerStructure);
+                                    size += subObj.Length * GetTypeSize(fieldInfo.FieldType.GetElementType(), out checkInnerStructure);
                                     if (checkInnerStructure)
                                     {
                                         //analyze array elements
@@ -112,7 +112,7 @@ namespace NMF.Benchmarks
                             }
                         }
                     }
-                    type = type.BaseType;
+                    type = type.GetTypeInfo().BaseType;
                 }
 
                 return size;
@@ -132,9 +132,9 @@ namespace NMF.Benchmarks
         private static long GetTypeSize(Type type, out bool plusInnerStructure)
         {
             plusInnerStructure = false;
-            if (type.IsEnum)
+            if (type.GetTypeInfo().IsEnum)
             {
-                return GetTypeSize(type.GetEnumUnderlyingType(), out plusInnerStructure);
+                return GetTypeSize(type.GetTypeInfo().GetEnumUnderlyingType(), out plusInnerStructure);
             }
             else if (type == typeof(double))
             {
@@ -191,7 +191,7 @@ namespace NMF.Benchmarks
             else
             {
                 plusInnerStructure = true;
-                return type.IsValueType ? 0 : MemoryForObject;
+                return type.GetTypeInfo().IsValueType ? 0 : MemoryForObject;
             }
         }
     }

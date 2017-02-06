@@ -10,14 +10,9 @@ namespace NMF.Expressions
 {
     internal partial class ObservableExpressionBinder
     {
-        protected override Expression VisitDynamic(DynamicExpression node)
-        {
-            throw new NotSupportedException("Dynamic expressions are not supported");
-        }
-
         private Expression VisitImplementedOperator(BinaryExpression node, string reverseOperator)
         {
-            var leftSubtract = node.Method.DeclaringType.GetMethod(reverseOperator, BindingFlags.Public | BindingFlags.Static, null, new Type[] { node.Type, node.Left.Type }, null);
+            var leftSubtract = node.Method.DeclaringType.GetRuntimeMethod(reverseOperator, new Type[] { node.Type, node.Left.Type });
             MethodInfo rightSubtract;
             if (node.Left.Type == node.Right.Type)
             {
@@ -25,7 +20,7 @@ namespace NMF.Expressions
             }
             else
             {
-                rightSubtract = node.Method.DeclaringType.GetMethod(reverseOperator, BindingFlags.Static | BindingFlags.Public, null, new Type[] { node.Type, node.Right.Type }, null);
+                rightSubtract = node.Method.DeclaringType.GetRuntimeMethod(reverseOperator, new Type[] { node.Type, node.Right.Type });
             }
             if (leftSubtract != null || rightSubtract != null)
             {
@@ -40,20 +35,20 @@ namespace NMF.Expressions
 
         private Type GetLeastGeneralCommonType(Type type1, Type type2)
         {
-            if (type1.IsInterface)
+            if (type1.GetTypeInfo().IsInterface)
             {
-                if (type2.GetInterfaces().Contains(type1)) return type1;
-                if (type2.IsInterface)
+                if (type2.GetTypeInfo().ImplementedInterfaces.Contains(type1)) return type1;
+                if (type2.GetTypeInfo().IsInterface)
                 {
-                    if (type1.GetInterfaces().Contains(type2)) return type2;
+                    if (type1.GetTypeInfo().ImplementedInterfaces.Contains(type2)) return type2;
                 }
                 return typeof(object);
             }
             else
             {
-                if (type2.IsInterface)
+                if (type2.GetTypeInfo().IsInterface)
                 {
-                    if (type1.GetInterfaces().Contains(type2)) return type2;
+                    if (type1.GetTypeInfo().ImplementedInterfaces.Contains(type2)) return type2;
                     return typeof(object);
                 }
                 Type current = type1;
@@ -61,12 +56,12 @@ namespace NMF.Expressions
                 while (current != null)
                 {
                     types.Add(current);
-                    current = current.BaseType;
+                    current = current.GetTypeInfo().BaseType;
                 }
                 current = type2;
                 while (!types.Contains(current))
                 {
-                    current = current.BaseType;
+                    current = current.GetTypeInfo().BaseType;
                 }
                 return current;
             }
@@ -74,16 +69,16 @@ namespace NMF.Expressions
 
         protected override Expression VisitInvocation(InvocationExpression node)
         {
-            if (typeof(Delegate).IsAssignableFrom(node.Expression.Type) || IsObservableFuncType(node.Expression.Type, node.Arguments.Count))
+            if (typeof(Delegate).GetTypeInfo().IsAssignableFrom(node.Expression.Type.GetTypeInfo()) || IsObservableFuncType(node.Expression.Type, node.Arguments.Count))
             {
-                return VisitMethodCall(Expression.Call(node.Expression, node.Expression.Type.GetMethod("Invoke"), node.Arguments));
+                return VisitMethodCall(Expression.Call(node.Expression, node.Expression.Type.GetRuntimeMethod("Invoke", node.Arguments.Select(a => a.Type).ToArray()), node.Arguments));
             }
             throw new InvalidOperationException("Unclear what to invoke.");
         }
 
         private bool IsObservableFuncType(Type type, int arguments)
         {
-            if (!type.IsGenericType) return false;
+            if (!type.IsConstructedGenericType) return false;
             return type.GetGenericTypeDefinition() == funcTypes[arguments];
         }
     }

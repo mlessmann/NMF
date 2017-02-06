@@ -204,7 +204,6 @@ namespace NMF.Expressions
         /// <param name="left">The left operator</param>
         /// <param name="right">The right operator</param>
         /// <returns>An incremental value with the bitwise and of the operators</returns>
-        [CLSCompliant(false)]
         public static INotifyExpression<uint> And(INotifyExpression<uint> left, INotifyExpression<uint> right)
         {
             return new ObservableUIntBitwiseAnd(left, right);
@@ -216,7 +215,6 @@ namespace NMF.Expressions
         /// <param name="left">The left operator</param>
         /// <param name="right">The right operator</param>
         /// <returns>An incremental value with the bitwise and of the operators</returns>
-        [CLSCompliant(false)]
         public static INotifyExpression<ulong> And(INotifyExpression<ulong> left, INotifyExpression<ulong> right)
         {
             return new ObservableULongBitwiseAnd(left, right);
@@ -250,7 +248,6 @@ namespace NMF.Expressions
         /// <param name="left">The left operator</param>
         /// <param name="right">The right operator</param>
         /// <returns>An incremental value with the bitwise or of the operators</returns>
-        [CLSCompliant(false)]
         public static INotifyExpression<uint> Or(INotifyExpression<uint> left, INotifyExpression<uint> right)
         {
             return new ObservableUIntBitwiseOr(left, right);
@@ -262,7 +259,6 @@ namespace NMF.Expressions
         /// <param name="left">The left operator</param>
         /// <param name="right">The right operator</param>
         /// <returns>An incremental value with the bitwise or of the operators</returns>
-        [CLSCompliant(false)]
         public static INotifyExpression<ulong> Or(INotifyExpression<ulong> left, INotifyExpression<ulong> right)
         {
             return new ObservableULongBitwiseOr(left, right);
@@ -296,7 +292,6 @@ namespace NMF.Expressions
         /// <param name="left">The left operator</param>
         /// <param name="right">The right operator</param>
         /// <returns>An incremental value with the bitwise xor of the operators</returns>
-        [CLSCompliant(false)]
         public static INotifyExpression<uint> Xor(INotifyExpression<uint> left, INotifyExpression<uint> right)
         {
             return new ObservableUIntBitwiseXor(left, right);
@@ -308,7 +303,6 @@ namespace NMF.Expressions
         /// <param name="left">The left operator</param>
         /// <param name="right">The right operator</param>
         /// <returns>An incremental value with the bitwise xor of the operators</returns>
-        [CLSCompliant(false)]
         public static INotifyExpression<ulong> Xor(INotifyExpression<ulong> left, INotifyExpression<ulong> right)
         {
             return new ObservableULongBitwiseXor(left, right);
@@ -406,7 +400,6 @@ namespace NMF.Expressions
         /// </summary>
         /// <param name="inner">The inner incremental value</param>
         /// <returns>An incremental value with the ones complement</returns>
-        [CLSCompliant(false)]
         public static INotifyExpression<uint> OnesComplement(INotifyExpression<uint> inner)
         {
             return new ObservableUIntOnesComplement(inner);
@@ -417,7 +410,6 @@ namespace NMF.Expressions
         /// </summary>
         /// <param name="inner">The inner incremental value</param>
         /// <returns>An incremental value with the ones complement</returns>
-        [CLSCompliant(false)]
         public static INotifyExpression<ulong> OnesComplement(INotifyExpression<ulong> inner)
         {
             return new ObservableULongOnesComplement(inner);
@@ -491,7 +483,6 @@ namespace NMF.Expressions
         /// <param name="left">The divisor</param>
         /// <param name="right">The divident</param>
         /// <returns>The incremnetal division</returns>
-        [CLSCompliant(false)]
         public static INotifyExpression<uint> Divide(INotifyExpression<uint> left, INotifyExpression<uint> right)
         {
             return new ObservableUIntDivide(left, right);
@@ -503,7 +494,6 @@ namespace NMF.Expressions
         /// <param name="left">The divisor</param>
         /// <param name="right">The divident</param>
         /// <returns>The incremnetal division</returns>
-        [CLSCompliant(false)]
         public static INotifyExpression<ulong> Divide(INotifyExpression<ulong> left, INotifyExpression<ulong> right)
         {
             return new ObservableULongDivide(left, right);
@@ -559,7 +549,6 @@ namespace NMF.Expressions
         /// <param name="left">The left operand</param>
         /// <param name="right">The right operand</param>
         /// <returns>The incremental difference</returns>
-        [CLSCompliant(false)]
         public static INotifyExpression<uint> Subtract(INotifyExpression<uint> left, INotifyExpression<uint> right)
         {
             return new ObservableUIntMinus(left, right);
@@ -571,7 +560,6 @@ namespace NMF.Expressions
         /// <param name="left">The left operand</param>
         /// <param name="right">The right operand</param>
         /// <returns>The incremental difference</returns>
-        [CLSCompliant(false)]
         public static INotifyExpression<ulong> Subtract(INotifyExpression<ulong> left, INotifyExpression<ulong> right)
         {
             return new ObservableULongMinus(left, right);
@@ -627,7 +615,6 @@ namespace NMF.Expressions
         /// <param name="left">The left operand</param>
         /// <param name="right">The right operand</param>
         /// <returns>The incremental sum</returns>
-        [CLSCompliant(false)]
         public static INotifyExpression<uint> Add(INotifyExpression<uint> left, INotifyExpression<uint> right)
         {
             return new ObservableUIntPlus(left, right);
@@ -639,7 +626,6 @@ namespace NMF.Expressions
         /// <param name="left">The left operand</param>
         /// <param name="right">The right operand</param>
         /// <returns>The incremental sum</returns>
-        [CLSCompliant(false)]
         public static INotifyExpression<ulong> Add(INotifyExpression<ulong> left, INotifyExpression<ulong> right)
         {
             return new ObservableULongPlus(left, right);
@@ -706,7 +692,6 @@ namespace NMF.Expressions
         /// <param name="left">The left factor</param>
         /// <param name="right">The right factor</param>
         /// <returns>The incremental product</returns>
-        [CLSCompliant(false)]
         public static INotifyExpression<uint> Multiply(INotifyExpression<uint> left, INotifyExpression<uint> right)
         {
             return new ObservableUIntMultiply(left, right);
@@ -718,7 +703,6 @@ namespace NMF.Expressions
         /// <param name="left">The left factor</param>
         /// <param name="right">The right factor</param>
         /// <returns>The incremental product</returns>
-        [CLSCompliant(false)]
         public static INotifyExpression<ulong> Multiply(INotifyExpression<ulong> left, INotifyExpression<ulong> right)
         {
             return new ObservableULongMultiply(left, right);
@@ -774,7 +758,6 @@ namespace NMF.Expressions
         /// <param name="left">The left operand</param>
         /// <param name="right">The right operand</param>
         /// <returns>The incremental modulo</returns>
-        [CLSCompliant(false)]
         public static INotifyExpression<uint> Modulo(INotifyExpression<uint> left, INotifyExpression<uint> right)
         {
             return new ObservableUIntModulo(left, right);
@@ -786,7 +769,6 @@ namespace NMF.Expressions
         /// <param name="left">The left operand</param>
         /// <param name="right">The right operand</param>
         /// <returns>The incremental modulo</returns>
-        [CLSCompliant(false)]
         public static INotifyExpression<ulong> Modulo(INotifyExpression<ulong> left, INotifyExpression<ulong> right)
         {
             return new ObservableULongModulo(left, right);
@@ -842,7 +824,6 @@ namespace NMF.Expressions
         /// <param name="left">The value to be shifted</param>
         /// <param name="right">The shift</param>
         /// <returns>An incremental shift</returns>
-        [CLSCompliant(false)]
         public static INotifyExpression<uint> RightShift(INotifyExpression<uint> left, INotifyExpression<int> right)
         {
             return new ObservableUIntRightShift(left, right);
@@ -854,7 +835,6 @@ namespace NMF.Expressions
         /// <param name="left">The value to be shifted</param>
         /// <param name="right">The shift</param>
         /// <returns>An incremental shift</returns>
-        [CLSCompliant(false)]
         public static INotifyExpression<ulong> RightShift(INotifyExpression<ulong> left, INotifyExpression<int> right)
         {
             return new ObservableULongRightShift(left, right);
@@ -888,7 +868,6 @@ namespace NMF.Expressions
         /// <param name="left">The value to be shifted</param>
         /// <param name="right">The shift</param>
         /// <returns>An incremental shift</returns>
-        [CLSCompliant(false)]
         public static INotifyExpression<uint> LeftShift(INotifyExpression<uint> left, INotifyExpression<int> right)
         {
             return new ObservableUIntLeftShift(left, right);
@@ -900,7 +879,6 @@ namespace NMF.Expressions
         /// <param name="left">The value to be shifted</param>
         /// <param name="right">The shift</param>
         /// <returns>An incremental shift</returns>
-        [CLSCompliant(false)]
         public static INotifyExpression<ulong> LeftShift(INotifyExpression<ulong> left, INotifyExpression<int> right)
         {
             return new ObservableULongLeftShift(left, right);

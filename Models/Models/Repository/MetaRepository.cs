@@ -5,6 +5,7 @@ using System.Text;
 using System.Reflection;
 using NMF.Models.Repository.Serialization;
 using NMF.Models.Meta;
+using System.Runtime.InteropServices;
 
 namespace NMF.Models.Repository
 {
@@ -43,13 +44,14 @@ namespace NMF.Models.Repository
             serializer.KnownTypes.Add(typeof(INamespace));
             serializer.KnownTypes.Add(typeof(Model));
 
-            var domain = AppDomain.CurrentDomain;
+            /*var domain = AppDomain.CurrentDomain;
             domain.AssemblyLoad += domain_AssemblyLoad;
             var assemblies = domain.GetAssemblies();
             for (int i = 0; i < assemblies.Length; i++)
             {
                 RegisterAssembly(assemblies[i]);
-            }
+            }*/
+            RegisterAssembly(GetType().GetTypeInfo().Assembly);
         }
 
         public IType ResolveType(string uriString)
@@ -60,48 +62,42 @@ namespace NMF.Models.Repository
         public IType ResolveClass(System.Type systemType)
         {
             if (systemType == null) throw new ArgumentNullException("systemType");
-            var modelAtt = systemType.GetCustomAttributes(typeof(ModelRepresentationClassAttribute), false);
-            if (modelAtt != null && modelAtt.Length > 0)
+            var modelAtt = systemType.GetTypeInfo().GetCustomAttribute<ModelRepresentationClassAttribute>(false);
+            
+            if (modelAtt != null)
             {
-                var representation = (ModelRepresentationClassAttribute)modelAtt[0];
-                return ResolveType(representation.UriString);
+                return ResolveType(modelAtt.UriString);
             }
             return null;
         }
 
         private void RegisterAssembly(Assembly assembly)
-        {
-            var attributes = assembly.GetCustomAttributes(typeof(ModelMetadataAttribute), false);
-            if (attributes != null && attributes.Length > 0 && modelAssemblies.Add(assembly))
+        {   
+            var attributes = assembly.GetCustomAttributes<ModelMetadataAttribute>();
+            if (attributes != null && attributes.Any() && modelAssemblies.Add(assembly))
             {
-                var references = assembly.GetReferencedAssemblies();
+                /*var references = assembly.GetReferencedAssemblies();
                 if (references != null)
                 {
                     for (int i = 0; i < references.Length; i++)
                     {
                         RegisterAssembly(Assembly.Load(references[i]));
                     }
-                }
-                var types = assembly.GetTypes();
+                }*/
                 var saveMapping = new List<KeyValuePair<string, System.Type>>();
-                if (types != null)
+                foreach (var t in assembly.DefinedTypes)
                 {
-                    for (int i = 0; i < types.Length; i++)
+                    var modelRepresentation = t.GetCustomAttribute<ModelRepresentationClassAttribute>(false);
+                    if (modelRepresentation != null)
                     {
-                        var t = types[i];
-                        var modelRepresentation = t.GetCustomAttributes(typeof(ModelRepresentationClassAttribute), false);
-                        if (modelRepresentation != null && modelRepresentation.Length > 0)
-                        {
-                            serializer.KnownTypes.Add(t);
-                            var attr = (ModelRepresentationClassAttribute)modelRepresentation[0];
-                            saveMapping.Add(new KeyValuePair<string, System.Type>(attr.UriString, t));
-                        }
+                        serializer.KnownTypes.Add(t.AsType());
+                        saveMapping.Add(new KeyValuePair<string, System.Type>(modelRepresentation.UriString, t.AsType()));
                     }
                 }
+
                 var names = assembly.GetManifestResourceNames();
-                for (int i = 0; i < attributes.Length; i++)
+                foreach (var metadata in attributes)
                 {
-                    var metadata = attributes[i] as ModelMetadataAttribute;
                     Uri modelUri;
                     if (metadata != null && names.Contains(metadata.ResourceName) && Uri.TryCreate(metadata.ModelUri, UriKind.Absolute, out modelUri))
                     {
@@ -135,10 +131,10 @@ namespace NMF.Models.Repository
             }
         }
 
-        void domain_AssemblyLoad(object sender, AssemblyLoadEventArgs args)
+        /*void domain_AssemblyLoad(object sender, AssemblyLoadEventArgs args)
         {
             RegisterAssembly(args.LoadedAssembly);
-        }
+        }*/
 
         public IModelElement Resolve(Uri uri)
         {

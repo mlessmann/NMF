@@ -33,7 +33,7 @@ namespace Ecore2Code
         [Option('n', "namespace", HelpText="The root namespace")]
         public string OverallNamespace { get; set; }
 
-        [Option('l', "language", DefaultValue = SupportedLanguage.CS, HelpText = "The language in which the code should be generated")]
+        [Option('l', "language", Default = SupportedLanguage.CS, HelpText = "The language in which the code should be generated")]
         public SupportedLanguage Language { get; set; }
 
         [Option('f', "folder", HelpText = "Determines whether the code for classes should be separated to multiple files")]

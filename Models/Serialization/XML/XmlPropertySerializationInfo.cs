@@ -159,11 +159,10 @@ namespace NMF.Serialization
         {
             try
             {
-                getter = (Func<TComponent, TProperty>)Delegate.CreateDelegate(typeof(Func<TComponent, TProperty>), property.GetGetMethod());
-                var setMethod = property.GetSetMethod(false);
-                if (setMethod != null)
+                getter = (Func<TComponent, TProperty>)property.GetMethod.CreateDelegate(typeof(Func<TComponent, TProperty>));
+                if (property.CanWrite )
                 {
-                    setter = (Action<TComponent, TProperty>)Delegate.CreateDelegate(typeof(Action<TComponent, TProperty>), setMethod);
+                    setter = (Action<TComponent, TProperty>)property.SetMethod.CreateDelegate(typeof(Action<TComponent, TProperty>));
                 }
             }
             catch (ArgumentException ex)

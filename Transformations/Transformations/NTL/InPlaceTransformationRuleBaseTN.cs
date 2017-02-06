@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 
 using NMF.Utilities;
-using NMF.Transformations.Properties;
 using NMF.Transformations.Core;
 
 namespace NMF.Transformations
@@ -41,12 +40,12 @@ namespace NMF.Transformations
                 }
                 else
                 {
-                    MarkInstantiatingFor(rule, InputType.IsInstanceArrayOfType);
+                    MarkInstantiatingFor(rule, o => InputType.IsInstanceArrayOfType(o));
                 }
             }
             else
             {
-                throw new InvalidOperationException(Resources.ErrMarkInstantiatingMustInherit);
+                throw new InvalidOperationException(ErrorStrings.MarkInstantiatingMustInherit);
             }
         }
 

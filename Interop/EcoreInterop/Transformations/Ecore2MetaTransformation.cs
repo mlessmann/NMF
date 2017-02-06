@@ -108,7 +108,7 @@ namespace NMF.Interop.Ecore.Transformations
                 {
                     // if no attribute is the xmi id and the class has a name attribute, this attribute is used as a local identifier
                     var nameAttribute = input.EStructuralFeatures.OfType<EAttribute>().FirstOrDefault(att => string.Equals(att.Name, "Name",
-                        System.StringComparison.InvariantCultureIgnoreCase));
+                        System.StringComparison.OrdinalIgnoreCase));
 
                     if (nameAttribute != null)
                     {

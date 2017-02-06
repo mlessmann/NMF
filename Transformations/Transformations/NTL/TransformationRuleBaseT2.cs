@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using NMF.Utilities;
-using NMF.Transformations.Properties;
 using NMF.Transformations.Core;
 using System.ComponentModel;
 using System.Collections;
+using System.Reflection;
 
 namespace NMF.Transformations
 {
@@ -90,9 +90,9 @@ namespace NMF.Transformations
             where TRequiredInput2 : class
             where TRequiredOutput : class
         {
-            if (typeof(TRequiredInput1).IsAssignableFrom(typeof(TIn1))
-                && typeof(TRequiredInput2).IsAssignableFrom(typeof(TIn2))
-                && typeof(TRequiredOutput).IsAssignableFrom(OutputType))
+            if (typeof(TRequiredInput1).GetTypeInfo().IsAssignableFrom(typeof(TIn1).GetTypeInfo())
+                && typeof(TRequiredInput2).GetTypeInfo().IsAssignableFrom(typeof(TIn2).GetTypeInfo())
+                && typeof(TRequiredOutput).GetTypeInfo().IsAssignableFrom(OutputType.GetTypeInfo()))
             {
                 foreach (var rule in Transformation.GetRulesForTypeSignature(new Type[] { typeof(TRequiredInput1), typeof(TRequiredInput2)}, typeof(TRequiredOutput)))
                 {
@@ -101,7 +101,7 @@ namespace NMF.Transformations
             }
             else
             {
-                throw new InvalidOperationException(Resources.ErrRequires1ArgNoSelectorMustInherit);
+                throw new InvalidOperationException(ErrorStrings.Requires1ArgNoSelectorMustInherit);
             }
         }
 
@@ -121,13 +121,13 @@ namespace NMF.Transformations
             where TRequiredInput2 : class
             where TRequiredOutput : class
         {
-            if (typeof(TRequiredInput1).IsAssignableFrom(typeof(TIn1)))
+            if (typeof(TRequiredInput1).GetTypeInfo().IsAssignableFrom(typeof(TIn1).GetTypeInfo()))
             {
                 return Depend(null, c => c.CreateInputArray(), rule, (o1, o2) => persistor((TOut)o1, (TRequiredOutput)o2), true, false);
             }
             else
             {
-                throw new InvalidOperationException(Resources.ErrRequiresTransNoSelectorMustInherit);
+                throw new InvalidOperationException(ErrorStrings.RequiresTransNoSelectorMustInherit);
             }
         }
 
@@ -311,8 +311,8 @@ namespace NMF.Transformations
             where TRequiredInput2 : class
             where TRequiredOutput : class
         {
-            if (typeof(TRequiredInput1).IsAssignableFrom(typeof(TIn1))
-                && typeof(TRequiredInput2).IsAssignableFrom(typeof(TIn2)))
+            if (typeof(TRequiredInput1).GetTypeInfo().IsAssignableFrom(typeof(TIn1).GetTypeInfo())
+                && typeof(TRequiredInput2).GetTypeInfo().IsAssignableFrom(typeof(TIn2).GetTypeInfo()))
             {
                 foreach (var rule in Transformation.GetRulesForTypeSignature(new Type[] { typeof(TRequiredInput1), typeof(TRequiredInput2)}, typeof(TRequiredOutput)))
                 {
@@ -321,7 +321,7 @@ namespace NMF.Transformations
             }
             else
             {
-                throw new InvalidOperationException(Resources.ErrCall2ArgNoSelectorMustInherit);
+                throw new InvalidOperationException(ErrorStrings.Call2ArgNoSelectorMustInherit);
             }
         }
 
@@ -348,7 +348,7 @@ namespace NMF.Transformations
             }
             else
             {
-                throw new InvalidOperationException(Resources.ErrCallTransNoSelectorMustInherit);
+                throw new InvalidOperationException(ErrorStrings.CallTransNoSelectorMustInherit);
             }
         }
 

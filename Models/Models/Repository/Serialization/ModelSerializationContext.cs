@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -91,7 +92,7 @@ namespace NMF.Models.Repository.Serialization
                     }
                     else
                     {
-                        if (type.IsInstanceOfType(resolved))
+                        if (type.GetTypeInfo().IsAssignableFrom(resolved.GetType().GetTypeInfo()))
                         {
                             return resolved;
                         }

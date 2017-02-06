@@ -1,11 +1,11 @@
 ﻿using NMF.Transformations.Core;
-using NMF.Transformations.Properties;
 using NMF.Utilities;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 
 namespace NMF.Transformations
@@ -33,8 +33,8 @@ namespace NMF.Transformations
         /// </summary>
         public TransformationRule()
         {
-            var createOutput = this.GetType().GetMethod("CreateOutput");
-            needDependencies = createOutput.ReflectedType != typeof(TransformationRule<TIn1, TIn2, TOut>);
+            var createOutput = this.GetType().GetRuntimeMethod("CreateOutput", new[] { typeof(TIn1), typeof(TIn2), typeof(ITransformationContext) });
+            needDependencies = createOutput.DeclaringType != typeof(TransformationRule<TIn1, TIn2, TOut>);
         }
 
         /// <summary>
@@ -72,7 +72,7 @@ namespace NMF.Transformations
         public sealed override Computation CreateComputation(object[] input, IComputationContext context)
         {
             if (input == null) return null;
-            if (input.Length != 2) throw new ArgumentException(string.Format(CultureInfo.CurrentCulture, Resources.ErrTransformationRuleWrongNumberOfArguments, this.GetType().Name));
+            if (input.Length != 2) throw new ArgumentException(string.Format(CultureInfo.CurrentCulture, ErrorStrings.TransformationRuleWrongNumberOfArguments, this.GetType().Name));
             return new SimpleComputation(this, input[0] as TIn1, input[1] as TIn2, context);
         }
 
@@ -94,7 +94,7 @@ namespace NMF.Transformations
             }
             else
             {
-                throw new ApplicationException(string.Format("The transformation rule {0} cannot directly create an output as the target type cannot be instantiated.", this.GetType().Name));
+                throw new InvalidOperationException(string.Format("The transformation rule {0} cannot directly create an output as the target type cannot be instantiated.", this.GetType().Name));
             }
         }
 

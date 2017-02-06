@@ -4,6 +4,7 @@ using System;
 using System.CodeDom;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 
 namespace NMF.CodeGen
@@ -254,7 +255,7 @@ namespace NMF.CodeGen
         {
             get
             {
-                yield return typeof(object).Assembly;
+                yield return typeof(object).GetTypeInfo().Assembly;
             }
         }
 

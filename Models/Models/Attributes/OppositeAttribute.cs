@@ -16,7 +16,7 @@ namespace NMF.Models
             if (oppositeType == null) throw new ArgumentNullException("oppositeType");
             if (propertyName == null) throw new ArgumentNullException("propertyName");
 
-            Property = oppositeType.GetProperty(propertyName);
+            Property = oppositeType.GetRuntimeProperty(propertyName);
         }
     }
 }

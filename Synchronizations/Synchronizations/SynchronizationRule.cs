@@ -7,6 +7,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -37,15 +38,8 @@ namespace NMF.Synchronizations
 
         private static Type GetImplementationType(Type type)
         {
-            if (!type.IsAbstract && !type.IsInterface) return type;
-
-            var customs = type.GetCustomAttributes(typeof(DefaultImplementationTypeAttribute), false);
-            if (customs != null && customs.Length > 0)
-            {
-                var defaultImplAtt = customs[0] as DefaultImplementationTypeAttribute;
-                return defaultImplAtt.DefaultImplementationType;
-            }
-            return null;
+            if (!type.GetTypeInfo().IsAbstract && !type.GetTypeInfo().IsInterface) return type;
+            return type.GetTypeInfo().GetCustomAttribute<DefaultImplementationTypeAttribute>(false)?.DefaultImplementationType;
         }
 
         internal override GeneralTransformationRule LTR
@@ -481,11 +475,11 @@ namespace NMF.Synchronizations
         {
             if (synchronizationRule == null) throw new ArgumentNullException("synchronizationRule");
 
-            if (!synchronizationRule.LeftType.IsAssignableFrom(typeof(TLeft)))
+            if (!synchronizationRule.LeftType.GetTypeInfo().IsAssignableFrom(typeof(TLeft).GetTypeInfo()))
             {
                 throw new ArgumentException("The left types do not conform. The left type of the current rule must be an assignable of the given synchronization rules left type.", "synchronizationRule");
             }
-            if (!synchronizationRule.RightType.IsAssignableFrom(typeof(TRight)))
+            if (!synchronizationRule.RightType.GetTypeInfo().IsAssignableFrom(typeof(TRight).GetTypeInfo()))
             {
                 throw new ArgumentException("The right types do not conform. The right type of the current rule must be an assignable of the given synchronization rules right type.", "synchronizationRule");
             }
