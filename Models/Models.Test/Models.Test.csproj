@@ -9,9 +9,11 @@
   </ItemGroup>
   <ItemGroup>
     <None Remove="railway.nmf" />
+    <None Remove="RailwayModelWithXmi.xmi" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="railway.nmf" />
+    <EmbeddedResource Include="RailwayModelWithXmi.xmi" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.0.0-preview-20170125-04" />
@@ -34,7 +36,7 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="RailwayModelWithXmi.xmi">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </None>
   </ItemGroup>
 </Project>

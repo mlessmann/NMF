@@ -6,6 +6,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NMF.Models.Repository;
 using NMF.Models.Tests.Railway;
 using NMF.Utilities;
+using System.Reflection;
 
 namespace NMF.Models.Tests
 {
@@ -176,33 +177,32 @@ namespace NMF.Models.Tests
             var serializer = MetaRepository.Instance.Serializer;
 
             ModelElement.EnforceModels = true;
-
-            var tempFile = Path.GetTempFileName();
-            using (var fs = new FileStream(tempFile, FileMode.Create))
-            {
-                serializer.SerializeFragment(element, fs);
-            }
-
-            AssertFileContentsMatch("RailwayModelWithXmi.xmi", tempFile);
-
-            var test = File.ReadAllText(tempFile);
             
-            var switchToUpdate = railwayModel.RootElements.Single().As<RailwayContainer>().Descendants().OfType<ISwitch>().First(sw => sw.Sensor == null);
-            switchToUpdate.Sensor = new Sensor() { Id = 0815 };
-
-            var stream = new MemoryStream();
-            serializer.SerializeFragment(element, stream);
+            using (var actual = new MemoryStream())
+            {
+                serializer.SerializeFragment(element, actual);
+                using (var expected = typeof(ResolveTests).GetTypeInfo().Assembly.GetManifestResourceStream("NMF.Models.Test.RailwayModelWithXmi.xmi"))
+                {
+                    AssertTextStreamContentsMatch(expected, actual);
+                }
+            }
         }
 
-        private void AssertFileContentsMatch(string path1, string path2)
+        private void AssertTextStreamContentsMatch(Stream expected, Stream actual)
         {
-            var file1Contents = File.ReadAllLines(path1);
-            var file2Contents = File.ReadAllLines(path2);
+            expected.Seek(0, SeekOrigin.Begin);
+            actual.Seek(0, SeekOrigin.Begin);
 
-            Assert.AreEqual(file1Contents.Length, file2Contents.Length);
-            for (int i = 0; i < file1Contents.Length; i++)
+            var eReader = new StreamReader(expected);
+            var aReader = new StreamReader(actual);
+            Assert.AreEqual(eReader.EndOfStream, aReader.EndOfStream, "Streams have different length.");
+
+            int line = 0;
+            while (!eReader.EndOfStream && !aReader.EndOfStream)
             {
-                Assert.AreEqual(file1Contents[i], file2Contents[i], string.Format("Error is in line {0}.", i));
+                line++;
+                Assert.AreEqual(eReader.ReadLine(), aReader.ReadLine(), "Error in line " + line + ".");
+                Assert.AreEqual(eReader.EndOfStream, aReader.EndOfStream, "Streams have different length.");
             }
         }
 
