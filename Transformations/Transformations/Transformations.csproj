@@ -24,7 +24,6 @@
     <EmbeddedResource Update="ErrorStrings.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>ErrorStrings.Designer.cs</LastGenOutput>
-      <CustomToolNamespace>NMF.Transformations</CustomToolNamespace>
     </EmbeddedResource>
   </ItemGroup>
 </Project>
