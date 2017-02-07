@@ -7,10 +7,10 @@ using NMF.Synchronizations;
 using NMF.Transformations;
 using NMF.Models;
 
-[assembly: ModelMetadata("platform:/resource/ListMetamodelRefactoring/Metamodel/TypeA.ecore", "Synchronizations.Tests.A2B.TypeA.nmf")]
-[assembly: ModelMetadata("platform:/resource/ListMetamodelRefactoring/Metamodel/TypeB.ecore", "Synchronizations.Tests.A2B.TypeB.nmf")]
+[assembly: ModelMetadata("platform:/resource/ListMetamodelRefactoring/Metamodel/TypeA.ecore", "NMF.Synchronizations.Test.A2B.TypeA.nmf")]
+[assembly: ModelMetadata("platform:/resource/ListMetamodelRefactoring/Metamodel/TypeB.ecore", "NMF.Synchronizations.Test.A2B.TypeB.nmf")]
 
-namespace Synchronizations.Tests.A2B
+namespace NMF.Transformations.Test.A2B
 {
     [TestClass]
     public class A2BTest

@@ -7,8 +7,8 @@ using NMF.Synchronizations;
 using NMF.Transformations;
 using NMF.Models;
 
-[assembly: ModelMetadata("http://www.eclipse.org/atl/atlTransformations/TypeA", "Synchronizations.Tests.PortV3.TypeA.nmf")]
-[assembly: ModelMetadata("http://www.eclipse.org/atl/atlTransformations/TypeB", "Synchronizations.Tests.PortV3.TypeB.nmf")]
+[assembly: ModelMetadata("http://www.eclipse.org/atl/atlTransformations/TypeA", "NMF.Synchronizations.Test.PortV3.TypeA.nmf")]
+[assembly: ModelMetadata("http://www.eclipse.org/atl/atlTransformations/TypeB", "NMF.Synchronizations.Test.PortV3.TypeB.nmf")]
 
 namespace Synchronizations.Tests.PortV3
 {
