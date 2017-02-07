@@ -25,7 +25,7 @@ namespace NMF.Interop.Ecore
         static EcoreInterop()
         {
             var assembly = typeof(EcoreInterop).GetTypeInfo().Assembly;
-            using (var ecoreModel = assembly.GetManifestResourceStream("Nmf.Interop.Ecore.Ecore.ecore"))
+            using (var ecoreModel = assembly.GetManifestResourceStream("NMF.Interop.Ecore.Ecore.ecore"))
             {
                 repository.Serializer.Deserialize(ecoreModel, new Uri("http://www.eclipse.org/emf/2002/Ecore", UriKind.Absolute), repository, true);
             }
@@ -46,6 +46,10 @@ namespace NMF.Interop.Ecore
         public static EPackage LoadPackageFromFile(string path)
         {
             var fileInfo = new FileInfo(path);
+            if (!fileInfo.Exists)
+                fileInfo = new FileInfo(Path.Combine(AppContext.BaseDirectory, path));
+            if (!fileInfo.Exists)
+                throw new FileNotFoundException("Could not find package file.", path);
             return LoadPackageFromUri(new Uri(fileInfo.FullName));
         }
 
