@@ -12,7 +12,7 @@ namespace NMF.Utilities
 
         public static bool IsInstanceOf(this Type type, object instance)
         {
-            return instance != null && type.GetTypeInfo().IsAssignableFrom(instance.GetType().GetTypeInfo());
+            return instance != null && (type == instance.GetType() || type.GetTypeInfo().IsInstanceOfType(instance.GetType()));
         }
 
         #endregion

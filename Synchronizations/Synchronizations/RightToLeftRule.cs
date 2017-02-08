@@ -20,7 +20,7 @@ namespace NMF.Synchronizations
         public RightToLeftRule(SynchronizationRule<TLeft, TRight> rule)
         {
             this.rule = rule;
-            var createLeftOutput = rule.GetType().GetMethod("CreateLeftOutput", BindingFlags.NonPublic | BindingFlags.Instance);
+            var createLeftOutput = rule.GetType().GetTypeInfo().GetMethod("CreateLeftOutput", BindingFlags.NonPublic | BindingFlags.Instance);
             this.needDependencies = createLeftOutput.DeclaringType != typeof(SynchronizationRule<TLeft, TRight>);
         }
 

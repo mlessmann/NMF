@@ -8,9 +8,6 @@
     <Compile Include="..\..\CommonAssemblyInfo.cs" Link="CommonAssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="System.Reflection.TypeExtensions" Version="4.3.0" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\..\Expressions\Expressions.Linq\Expressions.Linq.csproj" />
     <ProjectReference Include="..\..\Expressions\Expressions\Expressions.csproj" />
     <ProjectReference Include="..\..\Tools\Utilities\Utilities.csproj" />
