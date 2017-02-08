@@ -451,7 +451,7 @@ namespace NMF.Expressions
 
         private Expression CreateExpression(Type expressionType, BinaryExpression node)
         {
-            return System.Activator.CreateInstance(expressionType
+            return Activator.CreateInstance(expressionType
                         .MakeGenericType(new Type[] { GetLeastGeneralCommonType(node.Left.Type, node.Right.Type) }),
                         node, this) as Expression;
         }
@@ -546,12 +546,12 @@ namespace NMF.Expressions
 
         protected override Expression VisitConditional(ConditionalExpression node)
         {
-            return System.Activator.CreateInstance(typeof(ObservableConditionalExpression<>).MakeGenericType(node.Type), node, this) as Expression;
+            return Activator.CreateInstance(typeof(ObservableConditionalExpression<>).MakeGenericType(node.Type), node, this) as Expression;
         }
 
         protected override Expression VisitConstant(ConstantExpression node)
         {
-            return System.Activator.CreateInstance(typeof(ObservableConstant<>).MakeGenericType(node.Type), node.Value) as Expression;
+            return Activator.CreateInstance(typeof(ObservableConstant<>).MakeGenericType(node.Type), node.Value) as Expression;
         }
 
         protected override Expression VisitDebugInfo(DebugInfoExpression node)
@@ -619,7 +619,7 @@ namespace NMF.Expressions
         protected override Expression VisitListInit(ListInitExpression node)
         {
             if (node.Initializers.Count == 0) return Visit(node.NewExpression);
-            return System.Activator.CreateInstance(typeof(ObservableListInit<>).MakeGenericType(node.Type), node, this) as Expression;
+            return Activator.CreateInstance(typeof(ObservableListInit<>).MakeGenericType(node.Type), node, this) as Expression;
         }
 
         protected override Expression VisitLoop(LoopExpression node)
@@ -652,53 +652,52 @@ namespace NMF.Expressions
 
         private Expression VisitField(MemberExpression node, FieldInfo field)
         {
-            return System.Activator.CreateInstance(typeof(ObservableReversableMemberExpression<,>).MakeGenericType(field.DeclaringType, field.FieldType),
+            return Activator.CreateInstance(typeof(ObservableReversableMemberExpression<,>).MakeGenericType(field.DeclaringType, field.FieldType),
                 node, this, field.Name, field) as Expression;
         }
 
         private Expression VisitProperty(MemberExpression node, PropertyInfo property)
         {
-            object getter;
-            if (!ReflectionHelper.IsValueType(property.DeclaringType))
+            //We only handle value types differently because of a bug in the BCL
+            Delegate getter;
+            if (property.DeclaringType.GetTypeInfo().IsValueType)
             {
-                getter = ReflectionHelper.CreateDelegate(typeof(Func<,>).MakeGenericType(property.DeclaringType, property.PropertyType), ReflectionHelper.GetGetter(property));
-            }
-            else
-            {
-                //TODO: This is a bug in the BCL, code here to get out of this shit
                 var param = Expression.Parameter(property.DeclaringType);
                 var expression = Expression.Lambda(Expression.Property(param, property), param);
                 getter = expression.Compile();
             }
-            if (property.CanWrite)
+            else
             {
-                var setter = ReflectionHelper.GetSetter(property);
-                if (setter != null)
-                {
-                    if (!ReflectionHelper.IsValueType(property.DeclaringType))
-                    {
-                        return System.Activator.CreateInstance(typeof(ObservableReversableMemberExpression<,>).MakeGenericType(property.DeclaringType, property.PropertyType),
-                            node, this, property.Name, getter, ReflectionHelper.CreateDelegate(typeof(Action<,>).MakeGenericType(property.DeclaringType, property.PropertyType), setter)) as Expression;
-                    }
-                    else
-                    {
-                        var setParam1 = Expression.Parameter(property.DeclaringType);
-                        var setParam2 = Expression.Parameter(property.PropertyType);
-                        var setExpression = Expression.Lambda(Expression.Assign(Expression.Property(setParam1, property), setParam2), setParam1, setParam2);
-
-                        return System.Activator.CreateInstance(typeof(ObservableReversableMemberExpression<,>).MakeGenericType(property.DeclaringType, property.PropertyType),
-                            node, this, property.Name, getter, setExpression.Compile()) as Expression;
-                    }
-                }
+                getter = property.GetGetMethod().CreateDelegate(typeof(Func<,>).MakeGenericType(property.DeclaringType, property.PropertyType));
             }
-            return System.Activator.CreateInstance(typeof(ObservableMemberExpression<,>).MakeGenericType(property.DeclaringType, property.PropertyType),
-                node, this, property.Name, getter) as Expression;
+
+            //GetSetMethod() returns null if setter is private
+            if (property.CanWrite && property.GetSetMethod() != null)
+            {
+                Delegate setter;
+                if (property.DeclaringType.GetTypeInfo().IsValueType)
+                {
+                    var setParam1 = Expression.Parameter(property.DeclaringType);
+                    var setParam2 = Expression.Parameter(property.PropertyType);
+                    var expression = Expression.Lambda(Expression.Assign(Expression.Property(setParam1, property), setParam2), setParam1, setParam2);
+                    setter = expression.Compile();
+                }
+                else
+                {
+                    setter = property.GetSetMethod().CreateDelegate(typeof(Action<,>).MakeGenericType(property.DeclaringType, property.PropertyType));
+                }
+                
+                var reversableType = typeof(ObservableReversableMemberExpression<,>).MakeGenericType(property.DeclaringType, property.PropertyType);
+                return (Expression)Activator.CreateInstance(reversableType, node, this, property.Name, getter, setter);
+            }
+            var expressionType = typeof(ObservableMemberExpression<,>).MakeGenericType(property.DeclaringType, property.PropertyType);
+            return (Expression)Activator.CreateInstance(expressionType, node, this, property.Name, getter);
         }
 
         protected override Expression VisitMemberInit(MemberInitExpression node)
         {
             if (node.Bindings.Count == 0) return Visit(node.NewExpression);
-            return System.Activator.CreateInstance(typeof(ObservableMemberInit<>).MakeGenericType(node.Type), node, this) as Expression;
+            return Activator.CreateInstance(typeof(ObservableMemberInit<>).MakeGenericType(node.Type), node, this) as Expression;
         }
 
         protected override Expression VisitMethodCall(MethodCallExpression node)
@@ -763,7 +762,7 @@ namespace NMF.Expressions
                         }
                         else
                         {
-                            return System.Activator.CreateInstance(memberSimpleProxyTypes[node.Arguments.Count].MakeGenericType(types), node, this, proxyMethod) as Expression;
+                            return Activator.CreateInstance(memberSimpleProxyTypes[node.Arguments.Count].MakeGenericType(types), node, this, proxyMethod) as Expression;
                         }
                     }
                     else if (!staticMethod && proxyAttribute.InitializeProxyMethod(node.Method, typesArg, out proxyMethod))
@@ -774,7 +773,7 @@ namespace NMF.Expressions
                         }
                         CheckForOutParameter(proxyMethod.GetParameters());
                         CheckReturnTypeIsCorrect(node, proxyMethod);
-                        return System.Activator.CreateInstance(memberProxyCallTypes[typesLength - 2].MakeGenericType(types), node, this, proxyMethod) as Expression;
+                        return Activator.CreateInstance(memberProxyCallTypes[typesLength - 2].MakeGenericType(types), node, this, proxyMethod) as Expression;
                     }
                     else if (proxyAttribute.InitializeProxyMethod(node.Method, typesArgStaticInc, out proxyMethod))
                     {
@@ -820,7 +819,7 @@ namespace NMF.Expressions
                                 object proxy = proxyMethod.Invoke(null, proxyArgs);
                                 var proxyExp = proxy as Expression;
                                 if (proxyExp != null) return proxyExp;
-                                return System.Activator.CreateInstance(typeof(ObservableProxyExpression<>).MakeGenericType(node.Method.ReturnType), proxy) as Expression;
+                                return Activator.CreateInstance(typeof(ObservableProxyExpression<>).MakeGenericType(node.Method.ReturnType), proxy) as Expression;
                             }
                             catch (NullReferenceException)
                             {
@@ -836,7 +835,7 @@ namespace NMF.Expressions
                         }
                         CheckForOutParameter(proxyMethod.GetParameters());
                         CheckReturnTypeIsCorrect(node, proxyMethod);
-                        return System.Activator.CreateInstance(staticProxyCallTypes[typesLength - 2].MakeGenericType(types), node, this, proxyMethod) as Expression;
+                        return Activator.CreateInstance(staticProxyCallTypes[typesLength - 2].MakeGenericType(types), node, this, proxyMethod) as Expression;
                     }
                     else
                     {
@@ -853,7 +852,7 @@ namespace NMF.Expressions
             {
                 methodArray = memberMethodTypes;
             }
-            return System.Activator.CreateInstance(methodArray[typesLength - 2].MakeGenericType(types), node, this) as Expression;
+            return Activator.CreateInstance(methodArray[typesLength - 2].MakeGenericType(types), node, this) as Expression;
         }
 
         private void CheckReturnTypeIsCorrect(MethodCallExpression node, MethodInfo proxyMethod)
