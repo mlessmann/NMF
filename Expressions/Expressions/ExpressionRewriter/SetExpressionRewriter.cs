@@ -4,6 +4,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
+using NMF.Utilities;
 
 namespace NMF.Expressions
 {
@@ -201,7 +202,7 @@ namespace NMF.Expressions
 
             if (leftConstant)
             {
-                var reverseOp = ReflectionHelper.GetMethod(node.Method.DeclaringType, reverseOperator,
+                var reverseOp = node.Method.DeclaringType.GetRuntimeMethod(reverseOperator,
                     new Type[] {
                         node.Type,
                         node.Left.Type
@@ -216,7 +217,7 @@ namespace NMF.Expressions
 
             if (rightConstant)
             {
-                var reverseOp = ReflectionHelper.GetMethod(node.Method.DeclaringType, reverseOperator,
+                var reverseOp = node.Method.DeclaringType.GetRuntimeMethod(reverseOperator,
                     new Type[] {
                         node.Type,
                         node.Right.Type
@@ -322,7 +323,7 @@ namespace NMF.Expressions
                     }
                     else if (proxyMethod != null && proxyMethod.IsStatic && proxyMethod.ReturnType == typeof(Expression))
                     {
-                        var func = ReflectionHelper.CreateDelegate<Func<MethodCallExpression, SetExpressionRewriter, Expression>>(proxyMethod);
+                        var func = proxyMethod.CreateDelegate<Func<MethodCallExpression, SetExpressionRewriter, Expression>>();
                         return func(node, this);
                     }
                 }

@@ -7,6 +7,7 @@ using NMF.Expressions.Arithmetics;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.ComponentModel;
+using NMF.Utilities;
 
 namespace NMF.Expressions
 {
@@ -151,7 +152,7 @@ namespace NMF.Expressions
             typeof(ObservableSimpleMethodProxyCall<,,,,,,,,,,,,,,,,>)
         };
 
-        private static MethodInfo memberBindingCreateProperty = ReflectionHelper.GetFunc<MemberAssignment, ObservableExpressionBinder, INotifyExpression<object>, ObservableMemberBinding<object>>((node, binder, target) => CreateProperty<object, object>(node, binder, target)).GetGenericMethodDefinition();
+        private static MethodInfo memberBindingCreateProperty = ((Func<MemberAssignment, ObservableExpressionBinder, INotifyExpression<object>, ObservableMemberBinding<object>>)CreateProperty<object, object>).GetMethodInfo().GetGenericMethodDefinition();
 
         public ObservableExpressionBinder(bool compress = false, IDictionary<string, object> parameterMappings = null)
         {
@@ -562,7 +563,7 @@ namespace NMF.Expressions
         protected override Expression VisitDefault(DefaultExpression node)
         {
             object defaultValue;
-            if (!ReflectionHelper.IsValueType(node.Type))
+            if (!node.Type.GetTypeInfo().IsValueType)
             {
                 defaultValue = null;
             }
@@ -632,7 +633,7 @@ namespace NMF.Expressions
             var property = node.Member as PropertyInfo;
             if (property != null)
             {
-                if (ReflectionHelper.GetGetter(property).IsStatic)
+                if (property.GetMethod.IsStatic)
                 {
                     return VisitConstant(Expression.Constant(property.GetValue(null, null), property.PropertyType));
                 }
@@ -658,35 +659,10 @@ namespace NMF.Expressions
 
         private Expression VisitProperty(MemberExpression node, PropertyInfo property)
         {
-            //We only handle value types differently because of a bug in the BCL
-            Delegate getter;
-            if (property.DeclaringType.GetTypeInfo().IsValueType)
-            {
-                var param = Expression.Parameter(property.DeclaringType);
-                var expression = Expression.Lambda(Expression.Property(param, property), param);
-                getter = expression.Compile();
-            }
-            else
-            {
-                getter = property.GetGetMethod().CreateDelegate(typeof(Func<,>).MakeGenericType(property.DeclaringType, property.PropertyType));
-            }
-
-            //GetSetMethod() returns null if setter is private
-            if (property.CanWrite && property.GetSetMethod() != null)
-            {
-                Delegate setter;
-                if (property.DeclaringType.GetTypeInfo().IsValueType)
-                {
-                    var setParam1 = Expression.Parameter(property.DeclaringType);
-                    var setParam2 = Expression.Parameter(property.PropertyType);
-                    var expression = Expression.Lambda(Expression.Assign(Expression.Property(setParam1, property), setParam2), setParam1, setParam2);
-                    setter = expression.Compile();
-                }
-                else
-                {
-                    setter = property.GetSetMethod().CreateDelegate(typeof(Action<,>).MakeGenericType(property.DeclaringType, property.PropertyType));
-                }
-                
+            var getter = property.CreateGetDelegate();
+            var setter = property.CreateSetDelegate();
+            if (setter != null)
+            {   
                 var reversableType = typeof(ObservableReversableMemberExpression<,>).MakeGenericType(property.DeclaringType, property.PropertyType);
                 return (Expression)Activator.CreateInstance(reversableType, node, this, property.Name, getter, setter);
             }
@@ -876,7 +852,7 @@ namespace NMF.Expressions
 
         private bool IsNotifyValue(Type actual, Type spec)
         {
-            return ReflectionHelper.IsAssignableFrom(typeof(INotifyValue<>).MakeGenericType(spec), actual);
+            return typeof(INotifyValue<>).MakeGenericType(spec).GetTypeInfo().IsAssignableFrom(actual.GetTypeInfo());
         }
 
         protected override Expression VisitNew(NewExpression node)
@@ -928,10 +904,10 @@ namespace NMF.Expressions
             object value;
             if (parameters.TryGetValue(node.Name, out value))
             {
-                if (ReflectionHelper.IsInstanceOf(node.Type, value) || value == null)
+                if (value == null || node.Type.IsInstanceOf(value))
                 {
                     var createType = typeof(ObservableConstant<>).MakeGenericType(node.Type);
-                    return (Expression)(ReflectionHelper.GetConstructor(createType).Invoke(new object[] { value }));
+                    return (Expression)Activator.CreateInstance(createType, value);
                 }
                 else
                 {
@@ -949,7 +925,7 @@ namespace NMF.Expressions
             else
             {
                 var createType = typeof(ObservableParameter<>).MakeGenericType(node.Type);
-                return (Expression)(ReflectionHelper.GetConstructor(createType).Invoke(new object[] { node.Name }));
+                return (Expression)Activator.CreateInstance(createType, node.Name);
             }
         }
 
@@ -1092,15 +1068,13 @@ namespace NMF.Expressions
             INotifyExpression<TMember> value = binder.VisitObservable<TMember>(node.Expression);
             var property = node.Member as PropertyInfo;
             var reversable = value as INotifyReversableExpression<TMember>;
-            if (reversable != null && ReflectionHelper.IsAssignableFrom(typeof(INotifyPropertyChanged), typeof(T)))
+            if (reversable != null && typeof(INotifyPropertyChanged).GetTypeInfo().IsAssignableFrom(typeof(T).GetTypeInfo()))
             {
                 return new ObservableReversablePropertyMemberBinding<T, TMember>(target, node.Member.Name,
-                    ReflectionHelper.CreateDelegate(typeof(Func<T, TMember>), ReflectionHelper.GetGetter(property)) as Func<T, TMember>,
-                    ReflectionHelper.CreateDelegate(typeof(Action<T, TMember>), ReflectionHelper.GetSetter(property)) as Action<T, TMember>,
-                    reversable);
+                    property.CreateGetDelegate<T, TMember>(), property.CreateSetDelegate<T, TMember>(), reversable);
             }
             return new ObservablePropertyMemberBinding<T, TMember>(target,
-                ReflectionHelper.CreateDelegate(typeof(Action<T, TMember>), ReflectionHelper.GetSetter(property)) as Action<T, TMember>, value);
+                property.CreateSetDelegate<T, TMember>(), value);
         }
 
         internal ObservableMemberBinding<T> VisitMemberBinding<T>(MemberBinding memberBinding, INotifyExpression<T> target)
@@ -1110,13 +1084,9 @@ namespace NMF.Expressions
                 case MemberBindingType.Assignment:
                     var assignment = memberBinding as MemberAssignment;
                     var property = assignment.Member as PropertyInfo;
-                    if (property != null)
+                    if (property != null && property.CanWrite)
                     {
-                        var setter = ReflectionHelper.GetSetter(property);
-                        if (setter != null)
-                        {
-                            return memberBindingCreateProperty.MakeGenericMethod(typeof(T), property.PropertyType).Invoke(null, new object[] { memberBinding, this, target }) as ObservableMemberBinding<T>;
-                        }
+                        return memberBindingCreateProperty.MakeGenericMethod(typeof(T), property.PropertyType).Invoke(null, new object[] { memberBinding, this, target }) as ObservableMemberBinding<T>;
                     }
                     var field = assignment.Member as FieldInfo;
                     if (field != null)

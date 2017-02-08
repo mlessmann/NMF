@@ -4,6 +4,7 @@ using SL = System.Linq.Enumerable;
 using System.Text;
 using System.Collections.Specialized;
 using System.Linq.Expressions;
+using System.Reflection;
 
 namespace NMF.Expressions.Linq
 {
@@ -38,13 +39,13 @@ namespace NMF.Expressions.Linq
         {
             if (node == null || rewriter == null) return null;
             var collectionType = typeof(ICollection<TSource>);
-            if (!ReflectionHelper.IsAssignableFrom(collectionType, node.Arguments[0].Type)) return null;
+            if (!collectionType.GetTypeInfo().IsAssignableFrom(node.Arguments[0].Type)) return null;
             
             var variable = Expression.Variable(typeof(TSource));
             var collection = Expression.Variable(typeof(ICollection<TSource>));
 
-            var perform = Expression.IfThen(Expression.Not(Expression.Call(collection, ReflectionHelper.GetMethod(collectionType, "Contains", new Type[] { typeof(TSource) }), variable)),
-                Expression.Call(collection, ReflectionHelper.GetMethod(collectionType, "Add", new Type[] { typeof(TSource) }), variable));
+            var perform = Expression.IfThen(Expression.Not(Expression.Call(collection, collectionType.GetRuntimeMethod("Contains", new[] { typeof(TSource) }), variable)),
+                Expression.Call(collection, collectionType.GetRuntimeMethod("Add", new[] { typeof(TSource) }), variable));
 
             var trueBlock = Expression.Block(
                 new ParameterExpression[] {
@@ -60,7 +61,7 @@ namespace NMF.Expressions.Linq
                     Expression.IfThenElse(
                         Expression.NotEqual(rewriter.Value, Expression.Constant(null, typeof(object))),
                         trueBlock,
-                        Expression.Call(collection, ReflectionHelper.GetMethod(collectionType, "Clear", new Type[] {})))
+                        Expression.Call(collection, collectionType.GetRuntimeMethod("Clear", new Type[0])))
                 );
         }
 
@@ -72,13 +73,13 @@ namespace NMF.Expressions.Linq
                 && node.Arguments[1].NodeType != ExpressionType.Quote
                 && node.Arguments[1].NodeType != ExpressionType.Lambda)) return null;
             var collectionType = typeof(ICollection<TSource>);
-            if (!ReflectionHelper.IsAssignableFrom(collectionType, node.Arguments[0].Type)) return null;
+            if (!collectionType.GetTypeInfo().IsAssignableFrom(node.Arguments[0].Type)) return null;
             
             var variable = Expression.Variable(typeof(TSource));
             var collection = Expression.Variable(typeof(ICollection<TSource>));
 
-            Expression perform = Expression.IfThen(Expression.Not(Expression.Call(collection, ReflectionHelper.GetMethod(collectionType, "Contains", new Type[] { typeof(TSource) }), variable)),
-                Expression.Call(collection, ReflectionHelper.GetMethod(collectionType, "Add", new Type[] { typeof(TSource) }), variable));
+            Expression perform = Expression.IfThen(Expression.Not(Expression.Call(collection, collectionType.GetRuntimeMethod("Contains", new[] { typeof(TSource) }), variable)),
+                Expression.Call(collection, collectionType.GetRuntimeMethod("Add", new[] { typeof(TSource) }), variable));
 
 
             var predicate = node.Arguments[1];
@@ -110,8 +111,7 @@ namespace NMF.Expressions.Linq
                 Expression.Assign(variable, rewriter.Value),
                 perform);
 
-            var removeMethod = ReflectionHelper.GetAction<ICollection<TSource>, Func<TSource, bool>>((source, pred) => RemoveWhere(source, pred));
-
+            var removeMethod = ((Action<ICollection<TSource>, Func<TSource, bool>>)RemoveWhere).GetMethodInfo();
             return
                 Expression.Block(
                     new ParameterExpression[] { collection },

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NMF.Utilities;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -53,7 +54,7 @@ namespace NMF.Expressions
         {
             if (!ExactMatch)
             {
-                return Inner.Value == null || ReflectionHelper.IsInstanceOf(TypeOperand, Inner.Value);
+                return Inner.Value == null || TypeOperand.IsInstanceOf(Inner.Value);
             }
             else
             {

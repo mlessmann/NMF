@@ -6,6 +6,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
+using NMF.Utilities;
 
 namespace NMF.Expressions
 {
@@ -109,7 +110,7 @@ namespace NMF.Expressions
         public Func<TInner, TOuter> Implementation { get; private set; }
 
         public ObservableUnaryExpression(UnaryExpression node, ObservableExpressionBinder binder)
-            : this(binder.VisitObservable<TInner>(node.Operand), ReflectionHelper.CreateDelegate<Func<TInner, TOuter>>(node.Method)) { }
+            : this(binder.VisitObservable<TInner>(node.Operand), node.Method.CreateDelegate<Func<TInner, TOuter>>()) { }
 
         public ObservableUnaryExpression(INotifyExpression<TInner> inner, Func<TInner, TOuter> implementation)
             : base(inner)
@@ -130,7 +131,7 @@ namespace NMF.Expressions
 
     internal sealed class ObservableConvert<TInner, TOuter> : ObservableUnaryReversableExpressionBase<TInner, TOuter>
     {
-        private static bool conversionRequired = ReflectionHelper.IsValueType(typeof(TInner));
+        private static bool conversionRequired = typeof(TInner).GetTypeInfo().IsValueType;
         private static Type nullableType = Nullable.GetUnderlyingType(typeof(TOuter)) ?? typeof(TOuter);
 
         protected override string Format

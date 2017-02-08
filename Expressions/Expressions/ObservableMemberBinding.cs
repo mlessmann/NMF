@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NMF.Utilities;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -22,7 +23,7 @@ namespace NMF.Expressions
     internal class ObservablePropertyMemberBinding<T, TMember> : ObservableMemberBinding<T>
     {
         public ObservablePropertyMemberBinding(MemberAssignment node, ObservableExpressionBinder binder, INotifyExpression<T> target, FieldInfo field)
-            : this(target, ReflectionHelper.CreateDynamicFieldSetter<T, TMember>(field), binder.VisitObservable<TMember>(node.Expression)) { }
+            : this(target, field.CreateSetDelegate<T, TMember>(), binder.VisitObservable<TMember>(node.Expression)) { }
 
         public ObservablePropertyMemberBinding(MemberAssignment node, ObservableExpressionBinder binder, INotifyExpression<T> target, Action<T, TMember> member)
             : this(target, member, binder.VisitObservable<TMember>(node.Expression)) { }

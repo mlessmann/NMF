@@ -1,7 +1,9 @@
-﻿using System;
+﻿using NMF.Utilities;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 using System.Text;
 
 namespace NMF.Expressions
@@ -51,7 +53,7 @@ namespace NMF.Expressions
                 object argument;
                 if (parameterMappings.TryGetValue(node.Name, out argument))
                 {
-                    if (ReflectionHelper.IsInstanceOf(node.Type, argument))
+                    if (node.Type.IsInstanceOf(argument))
                     {
                         return Expression.Constant(argument, node.Type);
                     }
@@ -65,7 +67,7 @@ namespace NMF.Expressions
                         else
                         {
                             var notifyValueType = typeof(INotifyValue<>).MakeGenericType(node.Type);
-                            return Expression.MakeMemberAccess(Expression.Constant(argument, notifyValueType), ReflectionHelper.GetProperty(notifyValueType, "Value"));
+                            return Expression.MakeMemberAccess(Expression.Constant(argument, notifyValueType), notifyValueType.GetRuntimeProperty("Value"));
                         }
                     }
                 }

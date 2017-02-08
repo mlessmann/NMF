@@ -5,6 +5,7 @@ using System.ComponentModel;
 using SL = System.Linq.Enumerable;
 using System.Text;
 using System.Diagnostics;
+using System.Reflection;
 
 namespace NMF.Expressions.Linq
 {
@@ -38,7 +39,7 @@ namespace NMF.Expressions.Linq
         private Dictionary<T, TaggedObservableValue<bool, ItemMultiplicity>> lambdas = new Dictionary<T, TaggedObservableValue<bool, ItemMultiplicity>>();
         private int nulls;
         private INotifyValue<bool> nullCheck;
-        private static bool isValueType = ReflectionHelper.IsValueType<T>();
+        private static bool isValueType = typeof(T).GetTypeInfo().IsValueType;
 
         public ObservingFunc<T, bool> Lambda
         {

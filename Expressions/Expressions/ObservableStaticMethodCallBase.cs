@@ -5,10 +5,10 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
+using NMF.Utilities;
 
 namespace NMF.Expressions
 {
-
     internal abstract class ObservableStaticMethodBase<TDelegate, TResult> : NotifyExpression<TResult>
         where TDelegate : class
     {
@@ -16,7 +16,7 @@ namespace NMF.Expressions
         {
             if (method == null) throw new ArgumentNullException("method");
 
-            Function = ReflectionHelper.CreateDelegate(typeof(TDelegate), method) as TDelegate;
+            Function = method.CreateDelegate<TDelegate>() as TDelegate;
         }
 
         public ObservableStaticMethodBase(TDelegate function)

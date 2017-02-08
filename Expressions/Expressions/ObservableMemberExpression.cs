@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NMF.Utilities;
+using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.ComponentModel;
@@ -136,7 +137,7 @@ namespace NMF.Expressions
         }
 
         public ObservableReversableMemberExpression(MemberExpression expression, ObservableExpressionBinder binder, string name, FieldInfo field)
-            : this(binder.VisitObservable<TTarget>(expression.Expression, true), name, ReflectionHelper.CreateDynamicFieldGetter<TTarget, TMember>(field), ReflectionHelper.CreateDynamicFieldSetter<TTarget, TMember>(field)) { }
+            : this(binder.VisitObservable<TTarget>(expression.Expression, true), name, field.CreateGetDelegate<TTarget, TMember>(), field.CreateSetDelegate<TTarget, TMember>()) { }
 
         public ObservableReversableMemberExpression(MemberExpression expression, ObservableExpressionBinder binder, string name, Func<TTarget, TMember> getter, Action<TTarget, TMember> setter)
             : this(binder.VisitObservable<TTarget>(expression.Expression, true), name, getter, setter) { }

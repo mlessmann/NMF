@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NMF.Utilities;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -20,7 +21,7 @@ namespace NMF.Expressions
             object argument;
             if (parameterMappings.TryGetValue(node.Name, out argument))
             {
-                if (ReflectionHelper.IsInstanceOf(node.Type, argument))
+                if (node.Type.IsInstanceOf(argument))
                 {
                     return Expression.Constant(argument);
                 }
@@ -31,7 +32,7 @@ namespace NMF.Expressions
                 else
                 {
                     var notifyValueType = typeof(INotifyValue<>).MakeGenericType(node.Type);
-                    if (ReflectionHelper.IsInstanceOf(notifyValueType, argument))
+                    if (notifyValueType.IsInstanceOf(argument))
                     {
                         throw new NotImplementedException();
                     }

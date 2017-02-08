@@ -18,7 +18,7 @@ namespace NMF.Expressions
         {
             if (types == null) throw new ArgumentNullException("types");
             var proxyTypeArgs = new List<Type>();
-            if (ReflectionHelper.IsGenericType(sourceMethod.DeclaringType))
+            if (sourceMethod.DeclaringType.GetTypeInfo().IsGenericType)
             {
                 proxyTypeArgs.AddRange(sourceMethod.DeclaringType.GetTypeInfo().GenericTypeArguments);
             }

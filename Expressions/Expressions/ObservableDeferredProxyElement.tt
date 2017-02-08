@@ -12,6 +12,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
+using NMF.Utilities;
 
 namespace NMF.Expressions
 {
@@ -28,7 +29,7 @@ namespace NMF.Expressions
 <# } #>
 
         public ObservableDeferredProxyElement(MethodInfo proxyGenerator<# for (int j = 1; j <= i; j++) { #>, INotifyExpression<T<#= j #>> argument<#= j #><# } #>)
-            : this(ReflectionHelper.CreateDelegate<Func<<# for (int j = 1; j <= i; j++) { #>INotifyValue<T<#= j #>>, <# } #>INotifyValue<T>>>(proxyGenerator)<# for (int j = 1; j <= i; j++) { #>, argument<#= j #><# } #>)
+            : this(proxyGenerator.CreateDelegate<Func<<# for (int j = 1; j <= i; j++) { #>INotifyValue<T<#= j #>>, <# } #>INotifyValue<T>>>()<# for (int j = 1; j <= i; j++) { #>, argument<#= j #><# } #>)
         { }
 
         private ObservableDeferredProxyElement(Func<<# for (int j = 1; j <= i; j++) { #>INotifyValue<T<#= j #>>, <# } #>INotifyValue<T>> proxyGenerator<# for (int j = 1; j <= i; j++) { #>, INotifyExpression<T<#= j #>> argument<#= j #><# } #>)

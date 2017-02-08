@@ -11,6 +11,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
+using NMF.Utilities;
 
 namespace NMF.Expressions
 {
@@ -59,7 +60,7 @@ namespace NMF.Expressions
 
 		private void RenewProxyFunction()
 		{
-			ProxyFunction = ReflectionHelper.CreateDelegate(typeof(Func<<# for (int j = 1; j <= i; j++) { #>INotifyValue<T<#= j #>>, <# } #>INotifyValue<TResult>>), Target.Value, ProxyMethod) as Func<<# for (int j = 1; j <= i; j++) { #>INotifyValue<T<#= j #>>, <# } #>INotifyValue<TResult>>;
+			ProxyFunction = ProxyMethod.CreateDelegate<Func<<# for (int j = 1; j <= i; j++) { #>INotifyValue<T<#= j #>>, <# } #>INotifyValue<TResult>>>(Target.Value);
 		}
 
         protected override INotifyValue<TResult> CreateProxy()

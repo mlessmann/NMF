@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
+using System.Reflection;
 
 namespace NMF.Expressions
 {
@@ -148,7 +149,7 @@ namespace NMF.Expressions
         /// <returns>An incremental value whether the object is of the given type</returns>
         public static INotifyExpression<bool> InstanceIOf(INotifyExpression<object> inner, Type type)
         {
-            return new ObservableTypeExpression(inner, type, ReflectionHelper.IsValueType(type));
+            return new ObservableTypeExpression(inner, type, type.GetTypeInfo().IsValueType);
         }
 
         /// <summary>

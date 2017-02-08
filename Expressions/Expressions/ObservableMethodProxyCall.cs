@@ -5,6 +5,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
+using NMF.Utilities;
 
 namespace NMF.Expressions
 {
@@ -40,7 +41,7 @@ namespace NMF.Expressions
 
 		private void RenewProxyFunction()
 		{
-			ProxyFunction = ReflectionHelper.CreateDelegate(typeof(Func<INotifyValue<TResult>>), Target.Value, ProxyMethod) as Func<INotifyValue<TResult>>;
+			ProxyFunction = ProxyMethod.CreateDelegate<Func<INotifyValue<TResult>>>(Target.Value);
 		}
 
         protected override INotifyValue<TResult> CreateProxy()
@@ -126,7 +127,7 @@ namespace NMF.Expressions
 
 		private void RenewProxyFunction()
 		{
-			ProxyFunction = ReflectionHelper.CreateDelegate(typeof(Func<T1, INotifyValue<TResult>>), Target.Value, ProxyMethod) as Func<T1, INotifyValue<TResult>>;
+			ProxyFunction = ProxyMethod.CreateDelegate<Func<T1, INotifyValue<TResult>>>(Target.Value);
 		}
 
         protected override INotifyValue<TResult> CreateProxy()
@@ -219,7 +220,7 @@ namespace NMF.Expressions
 
 		private void RenewProxyFunction()
 		{
-			ProxyFunction = ReflectionHelper.CreateDelegate(typeof(Func<T1, T2, INotifyValue<TResult>>), Target.Value, ProxyMethod) as Func<T1, T2, INotifyValue<TResult>>;
+			ProxyFunction = ProxyMethod.CreateDelegate<Func<T1, T2, INotifyValue<TResult>>>(Target.Value);
 		}
 
         protected override INotifyValue<TResult> CreateProxy()
@@ -319,7 +320,7 @@ namespace NMF.Expressions
 
 		private void RenewProxyFunction()
 		{
-			ProxyFunction = ReflectionHelper.CreateDelegate(typeof(Func<T1, T2, T3, INotifyValue<TResult>>), Target.Value, ProxyMethod) as Func<T1, T2, T3, INotifyValue<TResult>>;
+			ProxyFunction = ProxyMethod.CreateDelegate<Func<T1, T2, T3, INotifyValue<TResult>>>(Target.Value);
 		}
 
         protected override INotifyValue<TResult> CreateProxy()
@@ -426,7 +427,7 @@ namespace NMF.Expressions
 
 		private void RenewProxyFunction()
 		{
-			ProxyFunction = ReflectionHelper.CreateDelegate(typeof(Func<T1, T2, T3, T4, INotifyValue<TResult>>), Target.Value, ProxyMethod) as Func<T1, T2, T3, T4, INotifyValue<TResult>>;
+			ProxyFunction = ProxyMethod.CreateDelegate<Func<T1, T2, T3, T4, INotifyValue<TResult>>>(Target.Value);
 		}
 
         protected override INotifyValue<TResult> CreateProxy()
@@ -540,7 +541,7 @@ namespace NMF.Expressions
 
 		private void RenewProxyFunction()
 		{
-			ProxyFunction = ReflectionHelper.CreateDelegate(typeof(Func<T1, T2, T3, T4, T5, INotifyValue<TResult>>), Target.Value, ProxyMethod) as Func<T1, T2, T3, T4, T5, INotifyValue<TResult>>;
+			ProxyFunction = ProxyMethod.CreateDelegate<Func<T1, T2, T3, T4, T5, INotifyValue<TResult>>>(Target.Value);
 		}
 
         protected override INotifyValue<TResult> CreateProxy()
@@ -661,7 +662,7 @@ namespace NMF.Expressions
 
 		private void RenewProxyFunction()
 		{
-			ProxyFunction = ReflectionHelper.CreateDelegate(typeof(Func<T1, T2, T3, T4, T5, T6, INotifyValue<TResult>>), Target.Value, ProxyMethod) as Func<T1, T2, T3, T4, T5, T6, INotifyValue<TResult>>;
+			ProxyFunction = ProxyMethod.CreateDelegate<Func<T1, T2, T3, T4, T5, T6, INotifyValue<TResult>>>(Target.Value);
 		}
 
         protected override INotifyValue<TResult> CreateProxy()
@@ -789,7 +790,7 @@ namespace NMF.Expressions
 
 		private void RenewProxyFunction()
 		{
-			ProxyFunction = ReflectionHelper.CreateDelegate(typeof(Func<T1, T2, T3, T4, T5, T6, T7, INotifyValue<TResult>>), Target.Value, ProxyMethod) as Func<T1, T2, T3, T4, T5, T6, T7, INotifyValue<TResult>>;
+			ProxyFunction = ProxyMethod.CreateDelegate<Func<T1, T2, T3, T4, T5, T6, T7, INotifyValue<TResult>>>(Target.Value);
 		}
 
         protected override INotifyValue<TResult> CreateProxy()
@@ -924,7 +925,7 @@ namespace NMF.Expressions
 
 		private void RenewProxyFunction()
 		{
-			ProxyFunction = ReflectionHelper.CreateDelegate(typeof(Func<T1, T2, T3, T4, T5, T6, T7, T8, INotifyValue<TResult>>), Target.Value, ProxyMethod) as Func<T1, T2, T3, T4, T5, T6, T7, T8, INotifyValue<TResult>>;
+			ProxyFunction = ProxyMethod.CreateDelegate<Func<T1, T2, T3, T4, T5, T6, T7, T8, INotifyValue<TResult>>>(Target.Value);
 		}
 
         protected override INotifyValue<TResult> CreateProxy()
@@ -1066,7 +1067,7 @@ namespace NMF.Expressions
 
 		private void RenewProxyFunction()
 		{
-			ProxyFunction = ReflectionHelper.CreateDelegate(typeof(Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, INotifyValue<TResult>>), Target.Value, ProxyMethod) as Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, INotifyValue<TResult>>;
+			ProxyFunction = ProxyMethod.CreateDelegate<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, INotifyValue<TResult>>>(Target.Value);
 		}
 
         protected override INotifyValue<TResult> CreateProxy()
@@ -1215,7 +1216,7 @@ namespace NMF.Expressions
 
 		private void RenewProxyFunction()
 		{
-			ProxyFunction = ReflectionHelper.CreateDelegate(typeof(Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, INotifyValue<TResult>>), Target.Value, ProxyMethod) as Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, INotifyValue<TResult>>;
+			ProxyFunction = ProxyMethod.CreateDelegate<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, INotifyValue<TResult>>>(Target.Value);
 		}
 
         protected override INotifyValue<TResult> CreateProxy()
@@ -1371,7 +1372,7 @@ namespace NMF.Expressions
 
 		private void RenewProxyFunction()
 		{
-			ProxyFunction = ReflectionHelper.CreateDelegate(typeof(Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, INotifyValue<TResult>>), Target.Value, ProxyMethod) as Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, INotifyValue<TResult>>;
+			ProxyFunction = ProxyMethod.CreateDelegate<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, INotifyValue<TResult>>>(Target.Value);
 		}
 
         protected override INotifyValue<TResult> CreateProxy()
@@ -1534,7 +1535,7 @@ namespace NMF.Expressions
 
 		private void RenewProxyFunction()
 		{
-			ProxyFunction = ReflectionHelper.CreateDelegate(typeof(Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, INotifyValue<TResult>>), Target.Value, ProxyMethod) as Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, INotifyValue<TResult>>;
+			ProxyFunction = ProxyMethod.CreateDelegate<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, INotifyValue<TResult>>>(Target.Value);
 		}
 
         protected override INotifyValue<TResult> CreateProxy()
@@ -1704,7 +1705,7 @@ namespace NMF.Expressions
 
 		private void RenewProxyFunction()
 		{
-			ProxyFunction = ReflectionHelper.CreateDelegate(typeof(Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, INotifyValue<TResult>>), Target.Value, ProxyMethod) as Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, INotifyValue<TResult>>;
+			ProxyFunction = ProxyMethod.CreateDelegate<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, INotifyValue<TResult>>>(Target.Value);
 		}
 
         protected override INotifyValue<TResult> CreateProxy()
@@ -1881,7 +1882,7 @@ namespace NMF.Expressions
 
 		private void RenewProxyFunction()
 		{
-			ProxyFunction = ReflectionHelper.CreateDelegate(typeof(Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, INotifyValue<TResult>>), Target.Value, ProxyMethod) as Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, INotifyValue<TResult>>;
+			ProxyFunction = ProxyMethod.CreateDelegate<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, INotifyValue<TResult>>>(Target.Value);
 		}
 
         protected override INotifyValue<TResult> CreateProxy()
@@ -2065,7 +2066,7 @@ namespace NMF.Expressions
 
 		private void RenewProxyFunction()
 		{
-			ProxyFunction = ReflectionHelper.CreateDelegate(typeof(Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, INotifyValue<TResult>>), Target.Value, ProxyMethod) as Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, INotifyValue<TResult>>;
+			ProxyFunction = ProxyMethod.CreateDelegate<Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, INotifyValue<TResult>>>(Target.Value);
 		}
 
         protected override INotifyValue<TResult> CreateProxy()

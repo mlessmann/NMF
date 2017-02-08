@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
+using System.Reflection;
 using System.Text;
 
 namespace NMF.Expressions.Linq
@@ -62,8 +63,8 @@ namespace NMF.Expressions.Linq
         public static INotifyEnumerable<TResult> GroupByWithSelectorAndComparer<TSource, TKey, TResult>(INotifyEnumerable<TSource> source, ObservingFunc<TSource, TKey> keySelector, ObservingFunc<TKey, IEnumerable<TSource>, TResult> resultSelector, IEqualityComparer<TKey> comparer)
         {
             var group = Expression.Parameter(typeof(INotifyGrouping<TKey, TSource>), "group");
-            var key = Expression.MakeMemberAccess(group, ReflectionHelper.GetProperty(group.Type, "Key"));
-            var lambda = Expression.Lambda<Func<INotifyGrouping<TKey, TSource>, TResult>>(Expression.Call(Expression.Constant(resultSelector), ReflectionHelper.GetMethod(typeof(ObservingFunc<TKey, IEnumerable<TSource>, TResult>), "Invoke", new Type[] { typeof(TKey), typeof(IEnumerable<TSource>) }), key, group));
+            var key = Expression.MakeMemberAccess(group, group.Type.GetRuntimeProperty("Key"));
+            var lambda = Expression.Lambda<Func<INotifyGrouping<TKey, TSource>, TResult>>(Expression.Call(Expression.Constant(resultSelector), typeof(ObservingFunc<TKey, IEnumerable<TSource>, TResult>).GetRuntimeMethod("Invoke", new[] { typeof(TKey), typeof(IEnumerable<TSource>) }), key, group));
             return Select(GroupByWithComparer<TSource, TKey>(source, keySelector, comparer), Observable.Func(lambda));
         }
 

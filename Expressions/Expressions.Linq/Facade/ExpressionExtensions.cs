@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 using System.Text;
 using SL = System.Linq.Enumerable;
 
@@ -1907,11 +1908,11 @@ namespace NMF.Expressions.Linq
         {
             public static Expression RewriteSingleOrDefault<T>(MethodCallExpression node)
             {
-                var singleOrDefault = ReflectionHelper.GetFunc<IEnumerableExpression<T>, Expression<Func<T, bool>>, Func<T, bool>, T>((source, predicate, predicateCompiled) => SingleOrDefault(source, predicate, predicateCompiled));
+                var singleOrDefault = ((Func<IEnumerableExpression<T>, Expression<Func<T, bool>>, Func<T, bool>, T>)SingleOrDefault).GetMethodInfo();
                 return RewriteSinglePredicate(node, singleOrDefault);
             }
 
-            private static Expression RewriteSinglePredicate(MethodCallExpression node, System.Reflection.MethodInfo alternativeMethod)
+            private static Expression RewriteSinglePredicate(MethodCallExpression node, MethodInfo alternativeMethod)
             {
                 var arg1 = node.Arguments[1];
                 if (arg1.NodeType == ExpressionType.Quote)
@@ -1923,7 +1924,7 @@ namespace NMF.Expressions.Linq
                 return node;
             }
 
-            private static Expression RewriteSinglePredicateWithSetter(MethodCallExpression node, System.Reflection.MethodInfo alternativeMethod)
+            private static Expression RewriteSinglePredicateWithSetter(MethodCallExpression node, MethodInfo alternativeMethod)
             {
                 var arg1 = node.Arguments[1];
                 if (arg1.NodeType == ExpressionType.Quote)
@@ -1939,26 +1940,26 @@ namespace NMF.Expressions.Linq
 
             public static Expression RewriteWhereEnumerable<T>(MethodCallExpression node)
             {
-                var where = ReflectionHelper.GetFunc((IEnumerableExpression<T> source, Expression<Func<T, bool>> predicate, Func<T, bool> predicateGetter) => Where(source, predicate, predicateGetter));
+                var where = ((Func<IEnumerableExpression<T>, Expression<Func<T, bool>>, Func<T, bool>, IEnumerableExpression<T>>)Where).GetMethodInfo();
                 return RewriteSinglePredicate(node, where);
             }
 
             public static Expression RewriteWhereCollection<T>(MethodCallExpression node)
             {
-                var where = ReflectionHelper.GetFunc((ICollectionExpression<T> source, Expression<Func<T, bool>> predicate, Func<T, bool> predicateGetter, Action<T, bool> predicateSetter) => Where(source, predicate, predicateGetter, predicateSetter));
+                var where = ((Func<ICollectionExpression<T>, Expression<Func<T, bool>>, Func<T, bool>, Action<T, bool>, ICollectionExpression<T>>)Where).GetMethodInfo();
                 return RewriteSinglePredicateWithSetter(node, where);
             }
 
             public static Expression LambdaMaxRewrite<TSource, TResult>(MethodCallExpression node)
                 where TResult : IComparable<TResult>
             {
-                var max = ReflectionHelper.GetFunc((IEnumerableExpression<TSource> source, Expression<Func<TSource, TResult>> selector, Func<TSource, TResult> selectorCompiled) => Max(source, selector, selectorCompiled));
+                var max = ((Func<IEnumerableExpression<TSource>, Expression<Func<TSource, TResult>>, Func<TSource, TResult>, TResult>)Max).GetMethodInfo();
                 return RewriteSinglePredicate(node, max);
             }
 
             public static Expression RewriteSelect<TSource, TResult>(MethodCallExpression node)
             {
-                var select = ReflectionHelper.GetFunc((IEnumerableExpression<TSource> source, Expression<Func<TSource, TResult>> selector, Func<TSource, TResult> selectorCompiled) => Select(source, selector, selectorCompiled));
+                var select = ((Func<IEnumerableExpression<TSource>, Expression<Func<TSource, TResult>>, Func<TSource, TResult>, IEnumerableExpression<TResult>>)Select).GetMethodInfo();
                 return RewriteSinglePredicate(node, select);
             }
         }

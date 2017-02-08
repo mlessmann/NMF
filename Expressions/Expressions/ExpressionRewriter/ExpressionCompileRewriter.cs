@@ -20,17 +20,15 @@ namespace NMF.Expressions
 
         protected override Expression VisitMethodCall(MethodCallExpression node)
         {
-            var rewriterAttributes = ReflectionHelper.GetCustomAttributes<ExpressionCompileRewriterAttribute>(node.Method, false);
-            if (rewriterAttributes != null && rewriterAttributes.Length == 1)
+            var rewriterAttribute = node.Method.GetCustomAttribute<ExpressionCompileRewriterAttribute>(false);
+            if (rewriterAttribute != null)
             {
-                var rewriteAtt = rewriterAttributes[0];
                 MethodInfo rewriter;
-                if (!rewriteAtt.InitializeProxyMethod(node.Method, new Type[] { typeof(MethodCallExpression) }, out rewriter))
+                if (!rewriterAttribute.InitializeProxyMethod(node.Method, new Type[] { typeof(MethodCallExpression) }, out rewriter))
                 {
                     throw new InvalidOperationException("The rewriter method had the wrong signature. It must be a method taking a MethodCallExpression as parameter.");
                 }
-                var rewriterDelegate = ReflectionHelper.CreateDelegate<Func<MethodCallExpression, Expression>>(rewriter);
-                return rewriterDelegate.Invoke(node);
+                return (Expression)rewriter.Invoke(null, new[] { node });
             }
             return base.VisitMethodCall(node);
         }

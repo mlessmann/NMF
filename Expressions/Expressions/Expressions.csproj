@@ -8,6 +8,9 @@
     <Compile Include="..\..\CommonAssemblyInfo.cs" Link="CommonAssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\Tools\Utilities\Utilities.csproj" />
+  </ItemGroup>
+  <ItemGroup>
     <None Update="ObservableDeferredProxyElement.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>ObservableDeferredProxyElement.cs</LastGenOutput>

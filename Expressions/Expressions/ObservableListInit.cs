@@ -5,6 +5,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
+using NMF.Utilities;
 
 namespace NMF.Expressions
 {
@@ -38,19 +39,19 @@ namespace NMF.Expressions
 			Target = target;
 			Value = value;
 
-            AddAction = ReflectionHelper.CreateDelegate<Action<T, TElement>>(addMethod);
-            var removeMethod = ReflectionHelper.GetRemoveMethod(typeof(T), typeof(TElement));
+            AddAction = addMethod.CreateDelegate<Action<T, TElement>>();
+            var removeMethod = FindRemoveMethod(typeof(T), typeof(TElement));
             if (removeMethod == null)
             {
                 throw new InvalidOperationException("Could not find appropriate Remove method for " + addMethod.Name);
             }
             if (removeMethod.ReturnType == typeof(void))
             {
-                RemoveAction = ReflectionHelper.CreateDelegate<Action<T, TElement>>(removeMethod);
+                RemoveAction = removeMethod.CreateDelegate<Action<T, TElement>>();
             }
             else if (removeMethod.ReturnType == typeof(bool))
             {
-                var tempAction = ReflectionHelper.CreateDelegate<Func<T, TElement, bool>>(removeMethod);
+                var tempAction = removeMethod.CreateDelegate<Func<T, TElement, bool>>();
                 RemoveAction = (o, i) => tempAction(o, i);
             }
             else
@@ -66,6 +67,31 @@ namespace NMF.Expressions
 
             AddAction = addMethod;
             RemoveAction = removeMethod;
+        }
+
+        private static MethodInfo FindRemoveMethod(Type collectionType, Type elementType)
+        {
+            if (typeof(IList).GetTypeInfo().IsAssignableFrom(collectionType))
+            {
+                var map = collectionType.GetTypeInfo().GetRuntimeInterfaceMap(typeof(IList));
+                return map.TargetMethods[9];
+            }
+            var methods = collectionType.GetRuntimeMethods();
+            foreach (var method in methods)
+            {
+                if (method.Name == "Remove")
+                {
+                    var parameters = method.GetParameters();
+                    if (parameters != null && parameters.Length == 1)
+                    {
+                        if (!parameters[0].IsOut && parameters[0].ParameterType.GetTypeInfo().IsAssignableFrom(elementType.GetTypeInfo()))
+                        {
+                            return method;
+                        }
+                    }
+                }
+            }
+            throw new InvalidOperationException("No suitable Remove method found");
         }
 
 		private void AddToList(bool removeOld, object old)

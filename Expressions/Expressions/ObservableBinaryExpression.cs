@@ -4,6 +4,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
+using NMF.Utilities;
 
 namespace NMF.Expressions
 {
@@ -143,7 +144,7 @@ namespace NMF.Expressions
         }
 
         public ObservableBinaryExpression(BinaryExpression node, ObservableExpressionBinder binder)
-            : this(binder.VisitObservable<TLeft>(node.Left), binder.VisitObservable<TRight>(node.Right), ReflectionHelper.CreateDelegate<Func<TLeft, TRight, TResult>>(node.Method)) { }
+            : this(binder.VisitObservable<TLeft>(node.Left), binder.VisitObservable<TRight>(node.Right), node.Method.CreateDelegate<Func<TLeft, TRight, TResult>>()) { }
 
         public ObservableBinaryExpression(INotifyExpression<TLeft> left, INotifyExpression<TRight> right, Func<TLeft, TRight, TResult> implementation)
             : base(left, right)
@@ -181,9 +182,9 @@ namespace NMF.Expressions
             : this(
                 binder.VisitObservable<TLeft>(node.Left),
                 binder.VisitObservable<TRight>(node.Right),
-                ReflectionHelper.CreateDelegate<Func<TLeft, TRight, TResult>>(node.Method),
-                rightReverser != null ? ReflectionHelper.CreateDelegate<Func<TResult, TRight, TLeft>>(rightReverser) : null,
-                leftReverser != null ? ReflectionHelper.CreateDelegate<Func<TResult, TLeft, TRight>>(leftReverser) : null) { }
+                node.Method.CreateDelegate<Func<TLeft, TRight, TResult>>(),
+                rightReverser != null ? rightReverser.CreateDelegate<Func<TResult, TRight, TLeft>>() : null,
+                leftReverser != null ? leftReverser.CreateDelegate<Func<TResult, TLeft, TRight>>() : null) { }
 
         public ObservableReversableBinaryExpression(INotifyExpression<TLeft> left,
             INotifyExpression<TRight> right,

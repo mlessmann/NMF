@@ -25,7 +25,7 @@ namespace NMF.Expressions
 
         private void RenewFunction()
         {
-            Function = ReflectionHelper.CreateDelegate(typeof(TDelegate), Target.Value, Method) as TDelegate;
+            Function = Method.CreateDelegate(typeof(TDelegate), Target.Value) as TDelegate;
         }
 
         public MethodInfo Method { get; private set; }
