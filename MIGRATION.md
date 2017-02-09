@@ -10,7 +10,7 @@ As the MSTest framework in not available for .NET Core, we use the MSTest v2 uni
 
 ## Status
 
-Last updated 06. Feb. 2017
+Last updated 09. Feb. 2017
 
 You need Visual Studio 2017 RC to compile the code. Alternatively, the dotnet CLI works too. Important: the solution file contains all projects, including the ones that do not yet compile (see below). Make sure to disable them first.
 
@@ -22,12 +22,17 @@ The following projects (and their respective test projects) compile and pass all
 * Benchmarks
 * Collections
 * Connectivity
+* EcoreInterop
 * Expressions
+* Expressions.Configuration
+* Expressions.Models
 * Expressions.Linq
 * Expressions.Utilities
 * Layering
+* Models
 * Optimizations
 * Serialization
+* Synchronizations
 * Tests
 * Transformations
 * Transformations.Core
@@ -48,25 +53,15 @@ Increator is missing the GAF nuget package, which is only available for .NET Fra
 
 CodeGen is missing the CodeDom API, which will be included in .NET Standard 2.0 (as seen by milestone tag [here](https://github.com/dotnet/corefx/issues?utf8=%E2%9C%93&q=label%3Aarea-System.CodeDom%20)). The other projects depend on CodeGen and therefore don't compile either.
 
-### What fails their tests
+### Feature differences
 
-* EcoreInterop
-* Expressions.Configuration
-* Expressions.Models
-* Models
-* Synchronizations
-
-Currently, 98 unit tests are failing in total. All of them are due to missing automatic metamodel discovery in the `MetaRepository` and `ModelRepository` classes. This functionality is missing because the AppDomain concept was dropped in .NET Core.
-
-### Minor missing features and temporary workarounds
-
+* The metamodel discovery in `MetaRepository` has been completely revamped. Since the AppDomain concept was discontinued in .NET Core, we can no longer react dynamically whenever a new assembly is loaded. Instead, we take advantage of the new `*.deps.json` file using the `Microsoft.Extensions.DependencyModel` package. The file contains the dependencies between all assemblies of the program at compile time. We simply walk the dependency graph and check all assemblies for metamodels. Therefore we only have to trigger the metamodel discovery once. Since dynamically loaded assemblies (i.e. via LoadBytes()) are not supported by this method, the user can now trigger metamodel discovery on a specific assembly manually.
 * The XML and XMI Serializers no longer call the methods of `ISupportInitialize` during deserialization. The interface was removed in .NET Core.
-* During unit test execution, the working directoy is set wrongly. Instead of the directory of the test assembly, it defaults to the Visual Studio installation path. [This is a known bug](https://github.com/Microsoft/vstest/issues/311) which has already been fixed, but not deployed. To fix this issue temporarily, there are 2 TODOs in the ModelRepository class, which set the working directory manually.
+* During unit test execution, the working directoy is set wrongly. Instead of the directory of the test assembly, it defaults to the Visual Studio installation path. [This is a known bug in MSTest v2](https://github.com/Microsoft/vstest/issues/311) which has already been fixed, but not deployed. To fix this issue temporarily, there are 2 TODOs in the ModelRepository class, which set the working directory manually.
 * The Benchmarks library targets .NET Standard 1.5 instead of 1.4, because it depends on the CommandLineParser nuget package, which targets 1.5.
 
 ## TODO
 
-* Find a solution for the missing metamodel discovery. We need two functions: get a list of all currently loaded assemblies (a replacement for `AppDomain.CurrentDomain.GetAssemblies()`) and some mechanism that lets us know when a new assembly has been loaded (a replacement for the `AppDomain.CurrentDomain.AssemblyLoad` event). Possible approaches are the nuget packages containing `AssemblyLoadContext` or `DependencyModel`.
 * Wait for CodeDom to be released for .NET Standard (probably in 2.0), then port the depending libraries to it.
 * Find a replacement for the Genetic Algorithm Framework used by Incerator.
 * Update the nuget package generation.
