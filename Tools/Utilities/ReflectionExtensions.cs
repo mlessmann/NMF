@@ -12,9 +12,9 @@ namespace NMF.Utilities
 
         public static bool IsInstanceOf(this Type type, object instance)
         {
-            return instance != null && (type == instance.GetType() || type.GetTypeInfo().IsInstanceOfType(instance.GetType()));
+            return instance != null && type.GetTypeInfo().IsAssignableFrom(instance.GetType().GetTypeInfo());
         }
-
+        
         #endregion
 
         #region Properties
@@ -34,8 +34,8 @@ namespace NMF.Utilities
             if (!info.CanRead)
                 return null;
 
-            var getMethod = info.GetGetMethod(nonPublic);
-            if (getMethod == null)
+            var getMethod = info.GetMethod;
+            if (!nonPublic && !getMethod.Attributes.HasFlag(MethodAttributes.Public))
                 return null;
 
             //We only handle value types differently because of a bug in the BCL
@@ -68,8 +68,8 @@ namespace NMF.Utilities
             if (!info.CanWrite)
                 return null;
 
-            var setMethod = info.GetSetMethod(nonPublic);
-            if (setMethod == null)
+            var setMethod = info.SetMethod;
+            if (!nonPublic && !setMethod.Attributes.HasFlag(MethodAttributes.Public))
                 return null;
 
             //We only handle value types differently because of a bug in the BCL
@@ -119,6 +119,19 @@ namespace NMF.Utilities
         public static TDelegate CreateDelegate<TDelegate>(this MethodInfo info, object target) where TDelegate : class
         {
             return info.CreateDelegate(typeof(TDelegate), target) as TDelegate;
+        }
+
+        public static MethodInfo GetDeclaredOrBaseMethod(this Type type, string name)
+        {
+            var info = type.GetTypeInfo();
+            do
+            {
+                var method = info.GetDeclaredMethod(name);
+                if (method != null)
+                    return method;
+            } while ((info = info.BaseType?.GetTypeInfo()) != null);
+
+            return null;
         }
 
         #endregion

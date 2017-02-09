@@ -1,5 +1,6 @@
 ﻿using NMF.Transformations;
 using NMF.Transformations.Core;
+using NMF.Utilities;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -20,7 +21,7 @@ namespace NMF.Synchronizations
         public LeftToRightRule(SynchronizationRule<TLeft, TRight> rule)
         {
             this.rule = rule;
-            var createRightOutput = rule.GetType().GetTypeInfo().GetMethod("CreateRightOutput", BindingFlags.Instance | BindingFlags.NonPublic);
+            var createRightOutput = rule.GetType().GetDeclaredOrBaseMethod("CreateRightOutput");
             this.needDependencies = createRightOutput.DeclaringType != typeof(SynchronizationRule<TLeft, TRight>);
         }
 

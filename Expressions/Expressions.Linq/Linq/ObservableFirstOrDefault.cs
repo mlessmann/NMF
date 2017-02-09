@@ -39,7 +39,7 @@ namespace NMF.Expressions.Linq
         {
             if (node == null || rewriter == null) return null;
             var collectionType = typeof(ICollection<TSource>);
-            if (!collectionType.GetTypeInfo().IsAssignableFrom(node.Arguments[0].Type)) return null;
+            if (!collectionType.GetTypeInfo().IsAssignableFrom(node.Arguments[0].Type.GetTypeInfo())) return null;
             
             var variable = Expression.Variable(typeof(TSource));
             var collection = Expression.Variable(typeof(ICollection<TSource>));
@@ -73,7 +73,7 @@ namespace NMF.Expressions.Linq
                 && node.Arguments[1].NodeType != ExpressionType.Quote
                 && node.Arguments[1].NodeType != ExpressionType.Lambda)) return null;
             var collectionType = typeof(ICollection<TSource>);
-            if (!collectionType.GetTypeInfo().IsAssignableFrom(node.Arguments[0].Type)) return null;
+            if (!collectionType.GetTypeInfo().IsAssignableFrom(node.Arguments[0].Type.GetTypeInfo())) return null;
             
             var variable = Expression.Variable(typeof(TSource));
             var collection = Expression.Variable(typeof(ICollection<TSource>));

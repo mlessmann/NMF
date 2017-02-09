@@ -71,7 +71,7 @@ namespace NMF.Expressions
 
         private static MethodInfo FindRemoveMethod(Type collectionType, Type elementType)
         {
-            if (typeof(IList).GetTypeInfo().IsAssignableFrom(collectionType))
+            if (typeof(IList).GetTypeInfo().IsAssignableFrom(collectionType.GetTypeInfo()))
             {
                 var map = collectionType.GetTypeInfo().GetRuntimeInterfaceMap(typeof(IList));
                 return map.TargetMethods[9];

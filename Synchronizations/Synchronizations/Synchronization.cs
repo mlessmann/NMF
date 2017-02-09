@@ -34,25 +34,25 @@ namespace NMF.Synchronizations
         public virtual SynchronizationRuleBase GetSynchronizationRuleForType(Type type)
         {
             if (type == null) throw new ArgumentNullException("type");
-            return SynchronizationRules.Where(type.GetTypeInfo().IsInstanceOfType).FirstOrDefault();
+            return SynchronizationRules.FirstOrDefault(type.IsInstanceOf);
         }
 
         public virtual IEnumerable<SynchronizationRuleBase> GetSynchronizationRulesForType(Type type)
         {
             if (type == null) throw new ArgumentNullException("type");
-            return SynchronizationRules.Where(type.GetTypeInfo().IsInstanceOfType);
+            return SynchronizationRules.Where(type.IsInstanceOf);
         }
 
         public virtual SynchronizationRuleBase GetSynchronizationRuleForSignature(Type left, Type right)
         {
             var exactMatch = SynchronizationRules.Where(s => s.LeftType == left && s.RightType == right).FirstOrDefault();
             if (exactMatch != null) return exactMatch;
-            return SynchronizationRules.FirstOrDefault(s => left.GetTypeInfo().IsAssignableFrom(s.LeftType) && right.GetTypeInfo().IsAssignableFrom(s.RightType));
+            return SynchronizationRules.FirstOrDefault(s => left.GetTypeInfo().IsAssignableFrom(s.LeftType.GetTypeInfo()) && right.GetTypeInfo().IsAssignableFrom(s.RightType.GetTypeInfo()));
         }
 
         public virtual IEnumerable<SynchronizationRuleBase> GetSynchronizationRulesForSignature(Type left, Type right)
         {
-            return SynchronizationRules.Where(s => left.GetTypeInfo().IsAssignableFrom(s.LeftType) && right.GetTypeInfo().IsAssignableFrom(s.RightType));
+            return SynchronizationRules.Where(s => left.GetTypeInfo().IsAssignableFrom(s.LeftType.GetTypeInfo()) && right.GetTypeInfo().IsAssignableFrom(s.RightType.GetTypeInfo()));
         }
 
         public ISynchronizationContext Synchronize<TLeft, TRight>(ref TLeft left, ref TRight right, SynchronizationDirection direction, ChangePropagationMode changePropagation)

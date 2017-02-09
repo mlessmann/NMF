@@ -7,6 +7,7 @@ using NMF.Models.Repository.Serialization;
 using NMF.Models.Meta;
 using System.Runtime.InteropServices;
 using Microsoft.Extensions.DependencyModel;
+using System.IO;
 
 namespace NMF.Models.Repository
 {
@@ -15,7 +16,6 @@ namespace NMF.Models.Repository
         private static MetaRepository instance = new MetaRepository();
         private ModelCollection entries;
         private ModelSerializer serializer = new ModelSerializer();
-        private HashSet<string> touchedAssemblies = new HashSet<string>();
 
         event EventHandler<BubbledChangeEventArgs> IModelRepository.BubbledChange
         {
@@ -44,7 +44,7 @@ namespace NMF.Models.Repository
             entries = new ModelCollection(this);
             serializer.KnownTypes.Add(typeof(INamespace));
             serializer.KnownTypes.Add(typeof(Model));
-            
+
             FindNewAssemblies();
         }
 
@@ -65,32 +65,62 @@ namespace NMF.Models.Repository
             return null;
         }
 
+        private DependencyContext ReadDependencyContext()
+        {
+            var depsFiles = Directory.EnumerateFiles(AppContext.BaseDirectory, "*.deps.json");
+            if (!depsFiles.Any())
+                return null;
+
+            DependencyContext context = null;
+            using (var reader = new DependencyContextJsonReader())
+            {
+                foreach (var file in depsFiles)
+                {
+                    using (var stream = File.OpenRead(file))
+                    {
+                        if (context == null)
+                            context = reader.Read(stream);
+                        else
+                            context = context.Merge(reader.Read(stream));
+                    }
+                }
+            }
+            return context;
+        }
+
         private void FindNewAssemblies()
         {
-            var loadedAssemblies = DependencyContext.Default.GetDefaultAssemblyNames();
+            var context = ReadDependencyContext();
+            if (context == null)
+                return;
 
-            foreach (var assemblyName in loadedAssemblies)
+            //We need to traverse the dependency graph so that dependencies are
+            //touched before the dependents. This is quick and dirty.
+            var touchedLibraries = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            while (touchedLibraries.Count < context.RuntimeLibraries.Count)
             {
-                RegisterAssembly(assemblyName);
+                var currentLibraries = context.RuntimeLibraries
+                    .Where(l => !touchedLibraries.Contains(l.Name) && l.Dependencies.All(d => touchedLibraries.Contains(d.Name)));
+
+                foreach (var library in currentLibraries)
+                {
+                    touchedLibraries.Add(library.Name);
+                    if (library.Name.StartsWith("System.", StringComparison.OrdinalIgnoreCase) || library.Name.StartsWith("Microsoft.", StringComparison.OrdinalIgnoreCase))
+                        continue;
+                    
+                    foreach (var assemblyName in library.GetDefaultAssemblyNames(context))
+                        RegisterAssembly(assemblyName);
+                }
             }
         }
 
-        private void RegisterAssembly(AssemblyName assemblyName)
+        public void RegisterAssembly(AssemblyName assemblyName)
         {
-            if (assemblyName.Name.StartsWith("System.") || assemblyName.Name.StartsWith("Microsoft."))
-                return;
+            RegisterAssembly(Assembly.Load(assemblyName));
+        }
 
-            //AssemblyNames retrieved by DependencyContext only contain the Name,
-            //whereas those retrieved by GetReferencesAssemblies() contain all info.
-            //Therefore we can only compare on the Name
-            if (!touchedAssemblies.Add(assemblyName.Name))
-                return;
-
-            var assembly = Assembly.Load(assemblyName);
-
-            foreach (var dependency in assembly.GetReferencedAssemblies())
-                RegisterAssembly(dependency);
-
+        public void RegisterAssembly(Assembly assembly)
+        {
             var attributes = assembly.GetCustomAttributes<ModelMetadataAttribute>();
             if (attributes != null && attributes.Any())
             {
@@ -133,7 +163,6 @@ namespace NMF.Models.Repository
         
         public IModelElement Resolve(Uri uri)
         {
-            FindNewAssemblies();
             if (entries.TryGetValue(uri, out Model model))
             {
                 return model.Resolve(uri.Fragment);
